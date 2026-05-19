@@ -1,1 +1,191 @@
-<p>lista-productos works!</p>
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1>Productos</h1>
+      <p>Gestión de inventario y productos</p>
+    </div>
+    <button class="btn-primary" (click)="abrirModal()">
+      <mat-icon>add_box</mat-icon>
+      Nuevo producto
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Buscar producto..." [(ngModel)]="busqueda">
+      </div>
+      <span class="total">{{ productosFiltrados.length }} productos</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th>Disponibilidad</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of productosFiltrados">
+          <td class="nombre">{{ p.nombre }}</td>
+          <td><span class="cat-badge">{{ p.categoria }}</span></td>
+          <td class="precio">${{ p.precio | number }}</td>
+          <td>{{ p.stock }} uds.</td>
+          <td>
+            <span class="badge" [ngClass]="stockBadge(p.stock)">
+              {{ stockLabel(p.stock) }}
+            </span>
+          </td>
+          <td class="acciones">
+            <button class="btn-icon edit" title="Editar" (click)="abrirEditar(p)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button class="btn-icon delete" title="Eliminar" (click)="confirmarEliminar(p)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="productosFiltrados.length === 0">
+          <td colspan="6" class="empty">No se encontraron productos</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="modal-overlay" *ngIf="modalAbierta" (click)="cerrarModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-step-info">
+        <div class="step-badge"><mat-icon>add_box</mat-icon></div>
+        <span>Nuevo producto</span>
+      </div>
+      <button class="modal-close" (click)="cerrarModal()"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Nombre del producto <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="nuevoProducto.nombre" placeholder="Ej. Proteína Whey 1kg">
+        </div>
+        <div class="form-group">
+          <label>Categoría <span class="req">*</span></label>
+          <select [(ngModel)]="nuevoProducto.categoria">
+            <option value="">Selecciona una categoría</option>
+            <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Precio (MXN) <span class="req">*</span></label>
+          <input type="number" [(ngModel)]="nuevoProducto.precio" placeholder="0.00" min="0">
+        </div>
+        <div class="form-group">
+          <label>Stock inicial <span class="req">*</span></label>
+          <input type="number" [(ngModel)]="nuevoProducto.stock" placeholder="0" min="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarModal()">
+        <mat-icon>close</mat-icon> Cancelar
+      </button>
+      <button class="btn-save" (click)="guardar()">
+        <mat-icon>check</mat-icon> Registrar producto
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="modalEditarAbierta" (click)="cerrarEditar()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-step-info">
+        <div class="step-badge edit-badge"><mat-icon>edit</mat-icon></div>
+        <span>Editar producto</span>
+      </div>
+      <button class="modal-close" (click)="cerrarEditar()"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <div class="modal-body" *ngIf="productoEditando">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Nombre del producto <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="productoEditando.nombre" placeholder="Nombre">
+        </div>
+        <div class="form-group">
+          <label>Categoría <span class="req">*</span></label>
+          <select [(ngModel)]="productoEditando.categoria">
+            <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Precio (MXN)</label>
+          <input type="number" [(ngModel)]="productoEditando.precio" min="0">
+        </div>
+        <div class="form-group">
+          <label>Stock</label>
+          <input type="number" [(ngModel)]="productoEditando.stock" min="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarEditar()">
+        <mat-icon>close</mat-icon> Cancelar
+      </button>
+      <button class="btn-save" (click)="guardarEdicion()">
+        <mat-icon>save</mat-icon> Guardar cambios
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="modalEliminarAbierta" (click)="cerrarEliminar()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-step-info">
+        <div class="step-badge delete-badge"><mat-icon>warning</mat-icon></div>
+        <span>Eliminar producto</span>
+      </div>
+      <button class="modal-close" (click)="cerrarEliminar()"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <div class="modal-body" *ngIf="productoAEliminar">
+      <div class="delete-msg">
+        <p>¿Estás seguro de que deseas eliminar</p>
+        <p class="delete-nombre">{{ productoAEliminar.nombre }}?</p>
+        <p class="delete-aviso">Esta acción no se puede deshacer.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarEliminar()">
+        <mat-icon>close</mat-icon> Cancelar
+      </button>
+      <button class="btn-delete" (click)="eliminar()">
+        <mat-icon>delete</mat-icon> Sí, eliminar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" [ngClass]="toastTipo" *ngIf="toastVisible">
+  <mat-icon>{{ toastTipo === 'success' ? 'check_circle' : 'cancel' }}</mat-icon>
+  <span>{{ toastMensaje }}</span>
+  <button (click)="toastVisible = false"><mat-icon>close</mat-icon></button>
+</div>
