@@ -1,1 +1,74 @@
-<p>form-cliente works!</p>
+<div class="page">
+
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a routerLink="/clientes">Clientes</a>
+      <mat-icon>chevron_right</mat-icon>
+      <span>{{ titulo }}</span>
+    </div>
+    <h1>{{ titulo }}</h1>
+  </div>
+
+  <div class="form-card">
+    <div class="form-section">
+      <div class="section-title">Información personal</div>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Nombre <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="cliente.nombre" placeholder="Nombre">
+        </div>
+
+        <div class="form-group">
+          <label>Apellido <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="cliente.apellido" placeholder="Apellido">
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" [(ngModel)]="cliente.telefono" placeholder="961-000-0000">
+        </div>
+
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" [(ngModel)]="cliente.correo" placeholder="correo@ejemplo.com">
+        </div>
+
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="form-section">
+      <div class="section-title">Membresía</div>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Tipo de membresía <span class="req">*</span></label>
+          <select [(ngModel)]="cliente.membresia">
+            <option value="">Selecciona una membresía</option>
+            <option *ngFor="let m of membresias" [value]="m">{{ m }}</option>
+          </select>
+        </div>
+
+        <div class="form-group" *ngIf="esEdicion">
+          <label>Status</label>
+          <select [(ngModel)]="cliente.status">
+            <option *ngFor="let s of statuses" [value]="s">{{ s | titlecase }}</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/clientes" class="btn-cancel">Cancelar</a>
+      <button class="btn-save" (click)="guardar()">
+        <mat-icon>save</mat-icon>
+        {{ esEdicion ? 'Guardar cambios' : 'Registrar cliente' }}
+      </button>
+    </div>
+
+  </div>
+
+</div>

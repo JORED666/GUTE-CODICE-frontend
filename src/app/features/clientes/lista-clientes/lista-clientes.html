@@ -1,1 +1,216 @@
-<p>lista-clientes works!</p>
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1>Clientes</h1>
+      <p>Gestión de clientes y membresías</p>
+    </div>
+    <button class="btn-primary" (click)="abrirModal()">
+      <mat-icon>person_add</mat-icon>
+      Nuevo cliente
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Buscar cliente..." [(ngModel)]="busqueda">
+      </div>
+      <span class="total">{{ clientesFiltrados.length }} clientes</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+          <th>Membresía</th>
+          <th>Vence</th>
+          <th>Status</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of clientesFiltrados">
+          <td class="nombre">{{ c.nombre }} {{ c.apellido }}</td>
+          <td>{{ c.telefono }}</td>
+          <td>{{ c.membresia }}</td>
+          <td>{{ c.vence }}</td>
+          <td><span class="badge" [ngClass]="c.status">{{ c.status }}</span></td>
+          <td class="acciones">
+            <button class="btn-icon edit" title="Editar" (click)="abrirEditar(c)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button class="btn-icon delete" title="Eliminar" (click)="confirmarEliminar(c)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="clientesFiltrados.length === 0">
+          <td colspan="6" class="empty">No se encontraron clientes</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="modal-overlay" *ngIf="modalAbierta" (click)="cerrarModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-step-info">
+        <div class="step-badge">{{ paso }}</div>
+        <span>{{ paso === 1 ? 'Información personal' : 'Tipo de membresía' }}</span>
+      </div>
+      <button class="modal-close" (click)="cerrarModal()"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width]="paso === 1 ? '50%' : '100%'"></div>
+    </div>
+    <div class="progress-label">Paso {{ paso }} de 2</div>
+
+    <div class="modal-body" *ngIf="paso === 1">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="nuevoCliente.nombre" placeholder="Nombre">
+        </div>
+        <div class="form-group">
+          <label>Apellido <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="nuevoCliente.apellido" placeholder="Apellido">
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" [(ngModel)]="nuevoCliente.telefono" placeholder="961-000-0000">
+        </div>
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" [(ngModel)]="nuevoCliente.correo" placeholder="correo@ejemplo.com">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-body" *ngIf="paso === 2">
+      <div class="membresias-grid">
+        <div class="membresia-card" *ngFor="let m of membresias"
+          [class.selected]="nuevoCliente.membresia === m.tipo"
+          (click)="seleccionarMembresia(m.tipo)">
+          <div class="membresia-check" *ngIf="nuevoCliente.membresia === m.tipo">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="membresia-tipo">{{ m.tipo }}</div>
+          <div class="membresia-duracion">{{ m.duracion }}</div>
+          <div class="membresia-precio">{{ m.precio }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="paso === 1 ? cerrarModal() : (paso = 1)">
+        <mat-icon>arrow_back</mat-icon>
+        {{ paso === 1 ? 'Cancelar' : 'Anterior' }}
+      </button>
+      <button class="btn-save" (click)="paso === 1 ? siguientePaso() : guardar()">
+        {{ paso === 1 ? 'Siguiente' : 'Registrar cliente' }}
+        <mat-icon>{{ paso === 1 ? 'arrow_forward' : 'check' }}</mat-icon>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="modalEditarAbierta" (click)="cerrarEditar()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-step-info">
+        <div class="step-badge edit-badge"><mat-icon>edit</mat-icon></div>
+        <span>Editar cliente</span>
+      </div>
+      <button class="modal-close" (click)="cerrarEditar()"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <div class="modal-body" *ngIf="clienteEditando">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="clienteEditando.nombre" placeholder="Nombre">
+        </div>
+        <div class="form-group">
+          <label>Apellido <span class="req">*</span></label>
+          <input type="text" [(ngModel)]="clienteEditando.apellido" placeholder="Apellido">
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" [(ngModel)]="clienteEditando.telefono" placeholder="961-000-0000">
+        </div>
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" [(ngModel)]="clienteEditando.correo" placeholder="correo@ejemplo.com">
+        </div>
+        <div class="form-group">
+          <label>Membresía</label>
+          <select [(ngModel)]="clienteEditando.membresia">
+            <option *ngFor="let m of membresias" [value]="m.tipo">{{ m.tipo }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="clienteEditando.status">
+            <option *ngFor="let s of statuses" [value]="s">{{ s | titlecase }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarEditar()">
+        <mat-icon>close</mat-icon> Cancelar
+      </button>
+      <button class="btn-save" (click)="guardarEdicion()">
+        <mat-icon>save</mat-icon> Guardar cambios
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="modalEliminarAbierta" (click)="cerrarEliminar()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-step-info">
+        <div class="step-badge delete-badge"><mat-icon>warning</mat-icon></div>
+        <span>Eliminar cliente</span>
+      </div>
+      <button class="modal-close" (click)="cerrarEliminar()"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <div class="modal-body" *ngIf="clienteAEliminar">
+      <div class="delete-msg">
+        <p>¿Estás seguro de que deseas eliminar a</p>
+        <p class="delete-nombre">{{ clienteAEliminar.nombre }} {{ clienteAEliminar.apellido }}?</p>
+        <p class="delete-aviso">Esta acción no se puede deshacer.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarEliminar()">
+        <mat-icon>close</mat-icon> Cancelar
+      </button>
+      <button class="btn-delete" (click)="eliminar()">
+        <mat-icon>delete</mat-icon> Sí, eliminar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" [ngClass]="toastTipo" *ngIf="toastVisible">
+  <mat-icon>{{ toastTipo === 'success' ? 'check_circle' : 'cancel' }}</mat-icon>
+  <span>{{ toastMensaje }}</span>
+  <button (click)="toastVisible = false"><mat-icon>close</mat-icon></button>
+</div>
