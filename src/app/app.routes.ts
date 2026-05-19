@@ -1,7 +1,12 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  {
+    path: 'login',
+    loadChildren: () => import('./features/auth/auth-module')
+      .then(m => m.AuthModule)
+  },
   {
     path: 'dashboard',
     loadChildren: () => import('./features/dashboard/dashboard-module')
@@ -22,5 +27,5 @@ export const routes: Routes = [
     loadChildren: () => import('./features/caja/caja-module')
       .then(m => m.CajaModule)
   },
-  { path: '**', redirectTo: 'dashboard' }
+  { path: '**', redirectTo: 'login' }
 ];
