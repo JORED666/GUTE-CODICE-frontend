@@ -1,1 +1,156 @@
-<p>resumen works!</p>
+<div class="dashboard">
+
+  <div class="page-header">
+    <div>
+      <h1>Bienvenido, Admin</h1>
+      <p>Consulta las estadísticas de gestión del gimnasio</p>
+    </div>
+    <div class="header-right">
+      <span class="fecha">{{ fechaHoy }}</span>
+      <div class="reporte-wrap">
+        <button class="reporte-btn" (click)="toggleReporte()">
+          <mat-icon>download</mat-icon>
+          Descargar reporte
+          <mat-icon class="arrow">expand_more</mat-icon>
+        </button>
+        <div class="reporte-dropdown" [class.open]="reporteOpen">
+          <button class="reporte-item" (click)="descargarReporte('mensual')">
+            <mat-icon>calendar_month</mat-icon>
+            Reporte mensual
+          </button>
+          <button class="reporte-item" (click)="descargarReporte('anual')">
+            <mat-icon>calendar_today</mat-icon>
+            Reporte anual
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-top">
+        <span class="card-label">NO. TOTAL DE CLIENTES</span>
+        <div class="card-icon blue"><mat-icon>group</mat-icon></div>
+      </div>
+      <div class="card-value">{{ totalClientes }}</div>
+      <div class="card-sub green">+12% ↑ <span>este mes</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-label">GANANCIAS DEL MES</span>
+        <div class="card-icon green"><mat-icon>attach_money</mat-icon></div>
+      </div>
+      <div class="card-value">${{ gananciasMes | number }}</div>
+      <div class="card-sub green">+8% ↑ <span>vs mes anterior</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="card-label">VENTAS DE PRODUCTOS</span>
+        <div class="card-icon orange"><mat-icon>inventory_2</mat-icon></div>
+      </div>
+      <div class="card-value">${{ ventasProductos | number }}</div>
+      <div class="card-sub red">-3% ↓ <span>vs mes anterior</span></div>
+    </div>
+  </div>
+
+  <!-- Tablas -->
+  <div class="tables-grid">
+
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-title">ÚLTIMOS CLIENTES REGISTRADOS</span>
+        <a routerLink="/clientes" class="ver-todo">Ver todo</a>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Membresía</th>
+            <th>Vence</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of ultimosClientes">
+            <td>{{ c.nombre }}</td>
+            <td>{{ c.membresia }}</td>
+            <td>{{ c.vence }}</td>
+            <td><span class="badge" [class.activo]="c.status === 'Activo'" [class.inactivo]="c.status !== 'Activo'">{{ c.status }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-title">ÚLTIMOS PRODUCTOS VENDIDOS</span>
+        <a routerLink="/caja" class="ver-todo">Ver todo</a>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Fecha</th>
+            <th>Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of ultimosProductos">
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.categoria }}</td>
+            <td>{{ p.fecha }}</td>
+            <td class="monto">${{ p.monto | number }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Gráficas -->
+  <div class="charts-section">
+    <div class="section-title">Movimientos del gimnasio</div>
+    <div class="charts-grid">
+
+      <div class="chart-card">
+        <div class="chart-title">Ingresos por mes</div>
+        <div class="chart-placeholder">
+          <div class="bars">
+            <div class="bar" *ngFor="let b of barData" [style.height.%]="b.pct">
+              <span class="bar-label">{{ b.mes }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Distribución de membresías</div>
+        <div class="donut-wrap">
+          <svg viewBox="0 0 100 100" class="donut">
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#e8f5e9" stroke-width="18"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#4caf50" stroke-width="18"
+              stroke-dasharray="66 34" stroke-dashoffset="25"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#2196f3" stroke-width="18"
+              stroke-dasharray="20 80" stroke-dashoffset="-41"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#ff9800" stroke-width="18"
+              stroke-dasharray="9 91" stroke-dashoffset="-61"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#f44336" stroke-width="18"
+              stroke-dasharray="5 95" stroke-dashoffset="-70"/>
+          </svg>
+          <div class="donut-legend">
+            <div class="legend-item"><span class="dot" style="background:#4caf50"></span>Mensual 66%</div>
+            <div class="legend-item"><span class="dot" style="background:#2196f3"></span>Quincenal 20%</div>
+            <div class="legend-item"><span class="dot" style="background:#ff9800"></span>Semanal 9%</div>
+            <div class="legend-item"><span class="dot" style="background:#f44336"></span>Anual 5%</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
