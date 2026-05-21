@@ -9,7 +9,6 @@
       </div>
 
       <div class="nav-section">
-        <span class="nav-label">MAIN</span>
         <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
           <i class="pi pi-home"></i>
           <span class="nav-text">Dashboard</span>
@@ -17,7 +16,6 @@
       </div>
 
       <div class="nav-section">
-        <span class="nav-label">MANAGEMENT</span>
         <a routerLink="/clientes" routerLinkActive="active" class="nav-item">
           <i class="pi pi-users"></i>
           <span class="nav-text">Clientes</span>
@@ -32,18 +30,24 @@
         </a>
       </div>
 
+      <div class="nav-section">
+        <a routerLink="/configuracion" routerLinkActive="active" class="nav-item">
+          <i class="pi pi-cog"></i>
+          <span class="nav-text">Configuración</span>
+        </a>
+      </div>
+
     </aside>
 
     <div class="main-wrapper">
       <header class="topbar">
-        <div class="search-box">
-          <i class="pi pi-search"></i>
-          <input type="text" placeholder="Buscar...">
-        </div>
         <div class="topbar-right">
           <div class="admin-info" (click)="toggleMenu()">
-            <i class="pi pi-user"></i>
-            <span>Admin</span>
+            <div class="admin-avatar">
+              <img *ngIf="adminFoto" [src]="adminFoto" alt="foto">
+              <i class="pi pi-user" *ngIf="!adminFoto"></i>
+            </div>
+            <span>{{ adminNombre }}</span>
             <i class="pi pi-chevron-down arrow"></i>
           </div>
           <div class="dropdown-menu" [class.open]="menuOpen">
@@ -52,7 +56,7 @@
               <span>Configuración</span>
             </a>
             <div class="dropdown-divider"></div>
-            <button class="dropdown-item danger">
+            <button class="dropdown-item danger" (click)="cerrarSesion()">
               <i class="pi pi-sign-out"></i>
               <span>Cerrar sesión</span>
             </button>

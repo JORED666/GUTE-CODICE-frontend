@@ -27,5 +27,10 @@ export const routes: Routes = [
     loadChildren: () => import('./features/caja/caja-module')
       .then(m => m.CajaModule)
   },
+  {
+  path: 'configuracion',
+  loadChildren: () => import('./features/configuracion/configuracion-module')
+    .then(m => m.ConfiguracionModule)
+  },
   { path: '**', redirectTo: 'login' }
 ];

@@ -1,0 +1,148 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1>Configuración</h1>
+      <p>Administra tu perfil y preferencias</p>
+    </div>
+  </div>
+
+  <div class="profile-card">
+    <div class="profile-avatar-wrap">
+      <div class="profile-avatar">
+        <img *ngIf="fotoPreview" [src]="fotoPreview" alt="Foto de perfil">
+        <span *ngIf="!fotoPreview">{{ admin.nombre[0] }}</span>
+      </div>
+      <label class="foto-btn" title="Cambiar foto">
+        <i class="pi pi-camera"></i>
+        <input type="file" accept="image/*" (change)="onFotoSeleccionada($event)" hidden>
+      </label>
+    </div>
+    <div class="profile-info">
+      <h2>{{ admin.nombre }}</h2>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-header">
+      <span>Información Personal</span>
+    </div>
+
+    <div class="info-card-body">
+      <div class="info-grid">
+
+        <div class="info-field">
+          <label>NOMBRE</label>
+          <div class="input-wrap">
+            <i class="pi pi-id-card"></i>
+            <input type="text" [(ngModel)]="admin.nombre" placeholder="Nombre completo">
+            <i class="pi pi-pencil edit-icon"></i>
+          </div>
+        </div>
+
+        <div class="info-field">
+          <label>CORREO ELECTRÓNICO</label>
+          <div class="input-wrap">
+            <i class="pi pi-envelope"></i>
+            <input type="email" [(ngModel)]="admin.correo" placeholder="correo@ejemplo.com">
+            <i class="pi pi-pencil edit-icon"></i>
+          </div>
+        </div>
+
+        <div class="info-field">
+          <label>TELÉFONO</label>
+          <div class="input-wrap">
+            <i class="pi pi-phone"></i>
+            <input type="text" [(ngModel)]="admin.telefono" placeholder="961-000-0000">
+            <i class="pi pi-pencil edit-icon"></i>
+          </div>
+        </div>
+
+        <div class="info-field">
+          <label>DIRECCIÓN</label>
+          <div class="input-wrap">
+            <i class="pi pi-map-marker"></i>
+            <input type="text" [(ngModel)]="admin.direccion" placeholder="Calle...">
+            <i class="pi pi-pencil edit-icon"></i>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="info-divider"></div>
+
+      <div class="info-actions">
+        <button class="btn-password" (click)="abrirModalPassword()">
+          <i class="pi pi-lock"></i>
+          Cambiar contraseña
+        </button>
+      </div>
+
+      <div class="info-divider"></div>
+
+      <div class="save-actions">
+        <button class="btn-save" (click)="guardarPerfil()">
+          <i class="pi pi-save"></i>
+          Guardar cambios
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarModalPassword" (click)="cerrarModalPassword()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <div class="modal-icon"><i class="pi pi-lock"></i></div>
+        <span>Cambiar contraseña</span>
+      </div>
+      <button class="modal-close" (click)="cerrarModalPassword()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Contraseña actual</label>
+        <div class="input-wrap">
+          <i class="pi pi-lock"></i>
+          <input type="password" [(ngModel)]="passwords.actual" placeholder="••••••••">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Nueva contraseña</label>
+        <div class="input-wrap">
+          <i class="pi pi-lock"></i>
+          <input type="password" [(ngModel)]="passwords.nueva" placeholder="••••••••">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Confirmar nueva contraseña</label>
+        <div class="input-wrap">
+          <i class="pi pi-lock"></i>
+          <input type="password" [(ngModel)]="passwords.confirmar" placeholder="••••••••">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarModalPassword()">
+        <i class="pi pi-times"></i> Cancelar
+      </button>
+      <button class="btn-save-modal" (click)="cambiarPassword()">
+        <i class="pi pi-shield"></i> Actualizar contraseña
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" [ngClass]="toastTipo" *ngIf="toastVisible">
+  <i class="pi" [ngClass]="toastTipo === 'success' ? 'pi-check-circle' : 'pi-times-circle'"></i>
+  <span>{{ toastMensaje }}</span>
+  <button (click)="toastVisible = false"><i class="pi pi-times"></i></button>
+</div>
