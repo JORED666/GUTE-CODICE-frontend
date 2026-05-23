@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-login',
@@ -17,7 +18,7 @@ export class Login {
   cargando = false;
   errorMsg = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   togglePassword() {
     this.mostrarPassword = !this.mostrarPassword;
@@ -33,13 +34,15 @@ export class Login {
 
     this.cargando = true;
 
-    setTimeout(() => {
-      this.cargando = false;
-      if (this.correo === 'admin@codice.com' && this.contrasena === '1234') {
+    this.authService.login(this.correo, this.contrasena).subscribe({
+      next: () => {
+        this.cargando = false;
         this.router.navigate(['/dashboard']);
-      } else {
-        this.errorMsg = 'Correo o contraseña incorrectos';
+      },
+      error: (err) => {
+        this.cargando = false;
+        this.errorMsg = err.error?.message || 'Correo o contraseña incorrectos';
       }
-    }, 1500);
+    });
   }
 }

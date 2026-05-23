@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AdminService } from '../../../core/services/admin';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-configuracion',
@@ -33,7 +34,11 @@ export class Configuracion implements OnInit {
   toastTipo: 'success' | 'error' = 'success';
   private toastTimer: any;
 
-  constructor(private router: Router, private adminService: AdminService) {}
+  constructor(
+    private router: Router,
+    private adminService: AdminService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
     this.fotoPreview = this.adminService.getFoto();
@@ -93,7 +98,6 @@ export class Configuracion implements OnInit {
   }
 
   cerrarSesion() {
-    this.adminService.setFoto(null);
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 }

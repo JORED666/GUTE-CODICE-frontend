@@ -2,6 +2,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AdminService } from './core/services/admin';
+import { AuthService } from './core/services/auth';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +21,11 @@ export class App implements OnInit {
 
   private rutasSinLayout = ['/login'];
 
-  constructor(private router: Router, private adminService: AdminService) {}
+  constructor(
+    private router: Router,
+    private adminService: AdminService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
     this.router.events.subscribe(event => {
@@ -37,7 +42,7 @@ export class App implements OnInit {
 
   cerrarSesion() {
     this.menuOpen = false;
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 
   @HostListener('document:click', ['$event'])
