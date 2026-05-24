@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
+import { ProductosService } from '../../../core/services/productos';
 
 @Component({
   selector: 'app-lista-productos',
@@ -9,9 +10,11 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './lista-productos.html',
   styleUrl: './lista-productos.css'
 })
-export class ListaProductos {
+export class ListaProductos implements OnInit {
 
   busqueda = '';
+  cargando = false;
+  guardando = false;
   modalAbierta = false;
   modalEditarAbierta = false;
   modalEliminarAbierta = false;
@@ -37,22 +40,36 @@ export class ListaProductos {
     nombre: '', categoria: '', precio: null as number | null, stock: null as number | null
   };
 
-  productos = [
-    { id: 1, nombre: 'Proteína Whey 1kg',    categoria: 'Suplemento',  precio: 850,  stock: 24 },
-    { id: 2, nombre: 'Creatina 500g',         categoria: 'Suplemento',  precio: 450,  stock: 15 },
-    { id: 3, nombre: 'BCAA 300g',             categoria: 'Suplemento',  precio: 380,  stock: 8  },
-    { id: 4, nombre: 'Guantes de box',        categoria: 'Accesorio',   precio: 320,  stock: 30 },
-    { id: 5, nombre: 'Cuerda para saltar',    categoria: 'Accesorio',   precio: 150,  stock: 3  },
-    { id: 6, nombre: 'Camiseta deportiva',    categoria: 'Ropa',        precio: 200,  stock: 20 },
-    { id: 7, nombre: 'Mancuernas 10kg par',   categoria: 'Equipamiento',precio: 1200, stock: 0  },
-  ];
+  productos: any[] = [];
+
+  constructor(private productosService: ProductosService, private zone: NgZone) {}
+
+  ngOnInit() {
+    this.cargarProductos();
+  }
+
+  cargarProductos() {
+    this.cargando = true;
+    this.productosService.getProductos().subscribe({
+      next: (data) => {
+        this.productos = data;
+        this.cargando = false;
+        this.guardando = false;
+      },
+      error: () => {
+        this.mostrarToast('Error al cargar productos', 'error');
+        this.cargando = false;
+        this.guardando = false;
+      }
+    });
+  }
 
   get productosFiltrados() {
     const q = this.busqueda.toLowerCase();
     if (!q) return this.productos;
     return this.productos.filter(p =>
       p.nombre.toLowerCase().includes(q) ||
-      p.categoria.toLowerCase().includes(q)
+      p.categoria?.toLowerCase().includes(q)
     );
   }
 
@@ -73,7 +90,10 @@ export class ListaProductos {
     this.modalAbierta = true;
   }
 
-  cerrarModal() { this.modalAbierta = false; }
+  cerrarModal() {
+    this.modalAbierta = false;
+    this.guardando = false;
+  }
 
   guardar() {
     if (!this.nuevoProducto.nombre || !this.nuevoProducto.categoria ||
@@ -81,16 +101,25 @@ export class ListaProductos {
       this.mostrarToast('Por favor llena todos los campos', 'error');
       return;
     }
+    if (this.guardando) return;
+    this.guardando = true;
     const nombre = this.nuevoProducto.nombre;
-    this.productos.push({
-      id: this.productos.length + 1,
-      nombre,
-      categoria: this.nuevoProducto.categoria,
-      precio: this.nuevoProducto.precio!,
-      stock: this.nuevoProducto.stock!
+    this.productosService.createProducto(this.nuevoProducto).subscribe({
+      next: (productoCreado) => {
+        this.zone.run(() => {
+          this.productos = [...this.productos, productoCreado];
+          this.guardando = false;
+          this.modalAbierta = false;
+          this.mostrarToast(`${nombre} se ha registrado exitosamente`);
+        });
+      },
+      error: () => {
+        this.zone.run(() => {
+          this.guardando = false;
+          this.mostrarToast('Error al registrar producto', 'error');
+        });
+      }
     });
-    this.cerrarModal();
-    this.mostrarToast(`${nombre} se ha registrado exitosamente`);
   }
 
   abrirEditar(producto: any) {
@@ -101,28 +130,56 @@ export class ListaProductos {
   cerrarEditar() { this.modalEditarAbierta = false; this.productoEditando = null; }
 
   guardarEdicion() {
-    if (!this.productoEditando.nombre || !this.productoEditando.categoria) {
-      this.mostrarToast('Nombre y categoría son obligatorios', 'error');
-      return;
-    }
-    const nombre = this.productoEditando.nombre;
-    const idx = this.productos.findIndex(p => p.id === this.productoEditando.id);
-    if (idx !== -1) this.productos[idx] = { ...this.productoEditando };
-    this.cerrarEditar();
-    this.mostrarToast(`${nombre} se ha actualizado exitosamente`);
+  if (!this.productoEditando) return;
+  if (!this.productoEditando.nombre || !this.productoEditando.categoria) {
+    this.mostrarToast('Nombre y categoría son obligatorios', 'error');
+    return;
   }
+  const nombre = this.productoEditando.nombre;
+  const id = this.productoEditando.id_producto;
+  this.productosService.updateProducto(id, this.productoEditando).subscribe({
+    next: () => {
+      this.zone.run(() => {
+        this.cerrarEditar();
+        this.cargarProductos();
+        this.mostrarToast(`${nombre} se ha actualizado exitosamente`);
+      });
+    },
+    error: () => {
+      this.zone.run(() => {
+        this.mostrarToast('Error al actualizar producto', 'error');
+      });
+    }
+  });
+}
 
   confirmarEliminar(producto: any) {
     this.productoAEliminar = producto;
     this.modalEliminarAbierta = true;
   }
 
-  cerrarEliminar() { this.modalEliminarAbierta = false; this.productoAEliminar = null; }
+  cerrarEliminar() { 
+  this.modalEliminarAbierta = false; 
+  this.productoAEliminar = null; 
+  }
 
   eliminar() {
-    const nombre = this.productoAEliminar.nombre;
-    this.productos = this.productos.filter(p => p.id !== this.productoAEliminar.id);
-    this.cerrarEliminar();
-    this.mostrarToast(`${nombre} se ha eliminado exitosamente`);
+  if (!this.productoAEliminar) return;
+  const nombre = this.productoAEliminar.nombre;
+  const id = this.productoAEliminar.id_producto;
+  this.productosService.deleteProducto(id).subscribe({
+    next: () => {
+      this.zone.run(() => {
+        this.cerrarEliminar();
+        this.cargarProductos();
+        this.mostrarToast(`${nombre} se ha eliminado exitosamente`);
+      });
+    },
+    error: () => {
+      this.zone.run(() => {
+        this.mostrarToast('Error al eliminar producto', 'error');
+      });
+    }
+  });
   }
 }

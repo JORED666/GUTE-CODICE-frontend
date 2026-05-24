@@ -4,9 +4,23 @@
     <div>
       <h1>Clientes</h1>
       <p>Gestión de clientes y membresías</p>
+      <div class="header-stats">
+        <div class="stat">
+          <span class="stat-valor">{{ clientes.length }}</span>
+          <span class="stat-label">Total</span>
+        </div>
+        <div class="stat">
+          <span class="stat-valor">{{ clientes.filter(c => c.status === 'activo').length }}</span>
+          <span class="stat-label">Activos</span>
+        </div>
+        <div class="stat">
+          <span class="stat-valor">{{ clientes.filter(c => c.status !== 'activo').length }}</span>
+          <span class="stat-label">Inactivos</span>
+        </div>
+      </div>
     </div>
     <button class="btn-primary" (click)="abrirModal()">
-      <mat-icon>person_add</mat-icon>
+      <i class="pi pi-user-plus"></i>
       Nuevo cliente
     </button>
   </div>
@@ -14,13 +28,17 @@
   <div class="table-card">
     <div class="table-toolbar">
       <div class="search-box">
-        <mat-icon>search</mat-icon>
+        <i class="pi pi-search"></i>
         <input type="text" placeholder="Buscar cliente..." [(ngModel)]="busqueda">
       </div>
       <span class="total">{{ clientesFiltrados.length }} clientes</span>
     </div>
 
-    <table>
+    <div class="loading" *ngIf="cargando">
+      <i class="pi pi-spin pi-spinner"></i> Cargando...
+    </div>
+
+    <table *ngIf="!cargando">
       <thead>
         <tr>
           <th>Nombre</th>
@@ -33,22 +51,30 @@
       </thead>
       <tbody>
         <tr *ngFor="let c of clientesFiltrados">
-          <td class="nombre">{{ c.nombre }} {{ c.apellido }}</td>
-          <td>{{ c.telefono }}</td>
-          <td>{{ c.membresia }}</td>
-          <td>{{ c.vence }}</td>
+          <td>
+            <div class="nombre">
+              <div class="avatar">{{ c.nombre[0] }}{{ c.apellido[0] }}</div>
+              <span>{{ c.nombre }} {{ c.apellido }}</span>
+            </div>
+          </td>
+          <td>{{ c.telefono || '—' }}</td>
+          <td>{{ c.membresia_tipo || '—' }}</td>
+          <td>{{ c.fecha_vencimiento ? (c.fecha_vencimiento | date:'dd MMM yyyy') : '—' }}</td>
           <td><span class="badge" [ngClass]="c.status">{{ c.status }}</span></td>
           <td class="acciones">
             <button class="btn-icon edit" title="Editar" (click)="abrirEditar(c)">
-              <mat-icon>edit</mat-icon>
+              <i class="pi pi-pencil"></i>
             </button>
             <button class="btn-icon delete" title="Eliminar" (click)="confirmarEliminar(c)">
-              <mat-icon>delete</mat-icon>
+              <i class="pi pi-trash"></i>
             </button>
           </td>
         </tr>
         <tr *ngIf="clientesFiltrados.length === 0">
-          <td colspan="6" class="empty">No se encontraron clientes</td>
+          <td colspan="6" class="empty">
+            <i class="pi pi-inbox"></i>
+            <span>No se encontraron clientes</span>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -64,7 +90,9 @@
         <div class="step-badge">{{ paso }}</div>
         <span>{{ paso === 1 ? 'Información personal' : 'Tipo de membresía' }}</span>
       </div>
-      <button class="modal-close" (click)="cerrarModal()"><mat-icon>close</mat-icon></button>
+      <button class="modal-close" (click)="cerrarModal()">
+        <i class="pi pi-times"></i>
+      </button>
     </div>
 
     <div class="progress-bar">
@@ -96,26 +124,29 @@
     <div class="modal-body" *ngIf="paso === 2">
       <div class="membresias-grid">
         <div class="membresia-card" *ngFor="let m of membresias"
-          [class.selected]="nuevoCliente.membresia === m.tipo"
-          (click)="seleccionarMembresia(m.tipo)">
-          <div class="membresia-check" *ngIf="nuevoCliente.membresia === m.tipo">
-            <mat-icon>check_circle</mat-icon>
+          [class.selected]="nuevoCliente.fk_membresia === m.id_membresia"
+          (click)="seleccionarMembresia(m.id_membresia)">
+          <div class="membresia-check" *ngIf="nuevoCliente.fk_membresia === m.id_membresia">
+            <i class="pi pi-check-circle"></i>
+          </div>
+          <div class="membresia-icon">
+            <i class="pi pi-calendar"></i>
           </div>
           <div class="membresia-tipo">{{ m.tipo }}</div>
-          <div class="membresia-duracion">{{ m.duracion }}</div>
-          <div class="membresia-precio">{{ m.precio }}</div>
+          <div class="membresia-duracion">{{ m.duracion_dias }} días</div>
+          <div class="membresia-precio">${{ m.precio }}</div>
         </div>
       </div>
     </div>
 
     <div class="modal-footer">
       <button class="btn-cancel" (click)="paso === 1 ? cerrarModal() : (paso = 1)">
-        <mat-icon>arrow_back</mat-icon>
+        <i class="pi pi-arrow-left"></i>
         {{ paso === 1 ? 'Cancelar' : 'Anterior' }}
       </button>
       <button class="btn-save" (click)="paso === 1 ? siguientePaso() : guardar()">
         {{ paso === 1 ? 'Siguiente' : 'Registrar cliente' }}
-        <mat-icon>{{ paso === 1 ? 'arrow_forward' : 'check' }}</mat-icon>
+        <i class="pi" [ngClass]="paso === 1 ? 'pi-arrow-right' : 'pi-check'"></i>
       </button>
     </div>
 
@@ -127,10 +158,12 @@
 
     <div class="modal-header">
       <div class="modal-step-info">
-        <div class="step-badge edit-badge"><mat-icon>edit</mat-icon></div>
+        <div class="step-badge edit-badge"><i class="pi pi-pencil"></i></div>
         <span>Editar cliente</span>
       </div>
-      <button class="modal-close" (click)="cerrarEditar()"><mat-icon>close</mat-icon></button>
+      <button class="modal-close" (click)="cerrarEditar()">
+        <i class="pi pi-times"></i>
+      </button>
     </div>
 
     <div class="modal-body" *ngIf="clienteEditando">
@@ -153,8 +186,8 @@
         </div>
         <div class="form-group">
           <label>Membresía</label>
-          <select [(ngModel)]="clienteEditando.membresia">
-            <option *ngFor="let m of membresias" [value]="m.tipo">{{ m.tipo }}</option>
+          <select [(ngModel)]="clienteEditando.fk_membresia">
+            <option *ngFor="let m of membresias" [value]="m.id_membresia">{{ m.tipo }}</option>
           </select>
         </div>
         <div class="form-group">
@@ -168,10 +201,10 @@
 
     <div class="modal-footer">
       <button class="btn-cancel" (click)="cerrarEditar()">
-        <mat-icon>close</mat-icon> Cancelar
+        <i class="pi pi-times"></i> Cancelar
       </button>
       <button class="btn-save" (click)="guardarEdicion()">
-        <mat-icon>save</mat-icon> Guardar cambios
+        <i class="pi pi-save"></i> Guardar cambios
       </button>
     </div>
 
@@ -183,14 +216,17 @@
 
     <div class="modal-header">
       <div class="modal-step-info">
-        <div class="step-badge delete-badge"><mat-icon>warning</mat-icon></div>
+        <div class="step-badge delete-badge"><i class="pi pi-exclamation-triangle"></i></div>
         <span>Eliminar cliente</span>
       </div>
-      <button class="modal-close" (click)="cerrarEliminar()"><mat-icon>close</mat-icon></button>
+      <button class="modal-close" (click)="cerrarEliminar()">
+        <i class="pi pi-times"></i>
+      </button>
     </div>
 
     <div class="modal-body" *ngIf="clienteAEliminar">
       <div class="delete-msg">
+        <i class="pi pi-exclamation-circle delete-icon"></i>
         <p>¿Estás seguro de que deseas eliminar a</p>
         <p class="delete-nombre">{{ clienteAEliminar.nombre }} {{ clienteAEliminar.apellido }}?</p>
         <p class="delete-aviso">Esta acción no se puede deshacer.</p>
@@ -199,10 +235,10 @@
 
     <div class="modal-footer">
       <button class="btn-cancel" (click)="cerrarEliminar()">
-        <mat-icon>close</mat-icon> Cancelar
+        <i class="pi pi-times"></i> Cancelar
       </button>
       <button class="btn-delete" (click)="eliminar()">
-        <mat-icon>delete</mat-icon> Sí, eliminar
+        <i class="pi pi-trash"></i> Sí, eliminar
       </button>
     </div>
 
@@ -210,7 +246,7 @@
 </div>
 
 <div class="toast" [ngClass]="toastTipo" *ngIf="toastVisible">
-  <mat-icon>{{ toastTipo === 'success' ? 'check_circle' : 'cancel' }}</mat-icon>
+  <i class="pi" [ngClass]="toastTipo === 'success' ? 'pi-check-circle' : 'pi-times-circle'"></i>
   <span>{{ toastMensaje }}</span>
-  <button (click)="toastVisible = false"><mat-icon>close</mat-icon></button>
+  <button (click)="toastVisible = false"><i class="pi pi-times"></i></button>
 </div>

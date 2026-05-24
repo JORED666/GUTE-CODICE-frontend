@@ -1,62 +1,76 @@
-<div class="app-container">
-  <aside class="sidebar">
-    <div class="logo">
-      <span class="logo-text">CODICE<span class="logo-accent">GYM</span></span>
-    </div>
+<ng-container *ngIf="mostrarLayout">
+  <div class="app-container">
+    <aside class="sidebar" [class.expanded]="sidebarExpanded"
+      (mouseenter)="sidebarExpanded = true"
+      (mouseleave)="sidebarExpanded = false">
 
-    <div class="nav-section">
-      <span class="nav-label">MAIN</span>
-      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
-        <mat-icon>dashboard</mat-icon>
-        <span class="nav-text">Dashboard</span>
-      </a>
-    </div>
-
-    <div class="nav-section">
-      <span class="nav-label">MANAGEMENT</span>
-      <a routerLink="/clientes" routerLinkActive="active" class="nav-item">
-        <mat-icon>people</mat-icon>
-        <span class="nav-text">Clientes</span>
-      </a>
-      <a routerLink="/productos" routerLinkActive="active" class="nav-item">
-        <mat-icon>inventory_2</mat-icon>
-        <span class="nav-text">Productos</span>
-      </a>
-      <a routerLink="/caja" routerLinkActive="active" class="nav-item">
-        <mat-icon>point_of_sale</mat-icon>
-        <span class="nav-text">Caja</span>
-      </a>
-    </div>
-  </aside>
-
-  <div class="main-wrapper">
-    <header class="topbar">
-      <div class="search-box">
-        <mat-icon>search</mat-icon>
-        <input type="text" placeholder="Buscar...">
+      <div class="logo">
+        <span class="logo-text">CODICE<span class="logo-accent">GYM</span></span>
       </div>
-      <div class="topbar-right">
-        <div class="admin-info" (click)="toggleMenu()">
-          <mat-icon>account_circle</mat-icon>
-          <span>Admin</span>
-          <mat-icon class="arrow">expand_more</mat-icon>
-        </div>
-        <div class="dropdown-menu" [class.open]="menuOpen">
-          <a class="dropdown-item" routerLink="/configuracion">
-            <mat-icon>settings</mat-icon>
-            <span>Configuración</span>
-          </a>
-          <div class="dropdown-divider"></div>
-          <button class="dropdown-item danger">
-            <mat-icon>logout</mat-icon>
-            <span>Cerrar sesión</span>
-          </button>
-        </div>
-      </div>
-    </header>
 
-    <main class="content">
-      <router-outlet />
-    </main>
+      <div class="nav-section">
+        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+          <i class="pi pi-home"></i>
+          <span class="nav-text">Dashboard</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <a routerLink="/clientes" routerLinkActive="active" class="nav-item">
+          <i class="pi pi-users"></i>
+          <span class="nav-text">Clientes</span>
+        </a>
+        <a routerLink="/productos" routerLinkActive="active" class="nav-item">
+          <i class="pi pi-box"></i>
+          <span class="nav-text">Productos</span>
+        </a>
+        <a routerLink="/caja" routerLinkActive="active" class="nav-item">
+          <i class="pi pi-wallet"></i>
+          <span class="nav-text">Caja</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <a routerLink="/configuracion" routerLinkActive="active" class="nav-item">
+          <i class="pi pi-cog"></i>
+          <span class="nav-text">Configuración</span>
+        </a>
+      </div>
+
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-right">
+          <div class="admin-info" (click)="toggleMenu()">
+            <div class="admin-avatar">
+              <img *ngIf="adminFoto" [src]="adminFoto" alt="foto">
+              <i class="pi pi-user" *ngIf="!adminFoto"></i>
+            </div>
+            <span>{{ adminNombre }}</span>
+            <i class="pi pi-chevron-down arrow"></i>
+          </div>
+          <div class="dropdown-menu" [class.open]="menuOpen">
+            <a class="dropdown-item" routerLink="/configuracion">
+              <i class="pi pi-cog"></i>
+              <span>Configuración</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item danger" (click)="cerrarSesion()">
+              <i class="pi pi-sign-out"></i>
+              <span>Cerrar sesión</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <router-outlet />
+      </main>
+    </div>
   </div>
-</div>
+</ng-container>
+
+<ng-container *ngIf="!mostrarLayout">
+  <router-outlet />
+</ng-container>

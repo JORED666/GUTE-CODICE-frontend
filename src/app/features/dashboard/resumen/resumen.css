@@ -200,41 +200,20 @@ tr:last-child td { border-bottom: none; }
   padding: 20px 24px;
 }
 
+.chart-card.wide {
+  grid-column: 1 / -1;
+}
+
 .chart-title {
   font-size: 13px;
   font-weight: 600;
   color: #555;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
-/* Barras */
-.bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  height: 140px;
-  padding: 0 8px;
-}
-
-.bar {
-  flex: 1;
-  background: #4caf50;
-  border-radius: 6px 6px 0 0;
+.chart-container {
+  height: 220px;
   position: relative;
-  min-height: 20px;
-  transition: background 0.2s;
-}
-
-.bar:hover { background: #2e7d32; }
-
-.bar-label {
-  position: absolute;
-  bottom: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 11px;
-  color: #aaa;
-  white-space: nowrap;
 }
 
 /* Donut */
