@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
+import { PagosService } from '../../../core/services/pagos';
+import { ProductosService } from '../../../core/services/productos';
 
 @Component({
   selector: 'app-historial-pagos',
@@ -9,9 +11,11 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './historial-pagos.html',
   styleUrl: './historial-pagos.css'
 })
-export class HistorialPagos {
+export class HistorialPagos implements OnInit {
 
   busqueda = '';
+  cargando = false;
+  guardando = false;
   modalAbierta = false;
   modalEliminarAbierta = false;
   pagoAEliminar: any = null;
@@ -31,16 +35,7 @@ export class HistorialPagos {
 
   conceptos = ['Membresía', 'Producto'];
   membresias = ['Semanal', 'Quincenal', 'Mensual', 'Anual'];
-
-  productos = [
-    { nombre: 'Proteína Whey 1kg',  precio: 850  },
-    { nombre: 'Creatina 500g',      precio: 450  },
-    { nombre: 'BCAA 300g',          precio: 380  },
-    { nombre: 'Guantes de box',     precio: 320  },
-    { nombre: 'Cuerda para saltar', precio: 150  },
-    { nombre: 'Camiseta deportiva', precio: 200  },
-    { nombre: 'Mancuernas 10kg par',precio: 1200 },
-  ];
+  productos: any[] = [];
 
   nuevoPago = {
     cliente: '',
@@ -49,39 +44,64 @@ export class HistorialPagos {
     monto: null as number | null
   };
 
-  pagos = [
-    { id: 1, cliente: 'Juan Pérez',     concepto: 'Membresía', detalle: 'Mensual',           monto: 400,  fecha: '19 May 2026' },
-    { id: 2, cliente: 'María García',   concepto: 'Membresía', detalle: 'Quincenal',          monto: 250,  fecha: '19 May 2026' },
-    { id: 3, cliente: 'Ana Martínez',   concepto: 'Producto',  detalle: 'Proteína Whey 1kg',  monto: 850,  fecha: '18 May 2026' },
-    { id: 4, cliente: 'Luis Rodríguez', concepto: 'Membresía', detalle: 'Mensual',            monto: 400,  fecha: '18 May 2026' },
-    { id: 5, cliente: 'Sofía Torres',   concepto: 'Producto',  detalle: 'Guantes de box',     monto: 320,  fecha: '17 May 2026' },
-    { id: 6, cliente: 'Carlos López',   concepto: 'Membresía', detalle: 'Semanal',            monto: 150,  fecha: '17 May 2026' },
-    { id: 7, cliente: 'Ana Martínez',   concepto: 'Producto',  detalle: 'Creatina 500g',      monto: 450,  fecha: '16 May 2026' },
-  ];
+  pagos: any[] = [];
+
+  constructor(
+    private pagosService: PagosService,
+    private productosService: ProductosService,
+    private zone: NgZone
+  ) {}
+
+  ngOnInit() {
+    this.cargarPagos();
+    this.cargarProductos();
+  }
+
+  cargarPagos() {
+    this.cargando = true;
+    this.pagosService.getPagos().subscribe({
+      next: (data) => {
+        this.pagos = data;
+        this.cargando = false;
+      },
+      error: () => {
+        this.mostrarToast('Error al cargar pagos', 'error');
+        this.cargando = false;
+      }
+    });
+  }
+
+  cargarProductos() {
+    this.productosService.getProductos().subscribe({
+      next: (data) => this.productos = data,
+      error: () => {}
+    });
+  }
 
   get pagosFiltrados() {
     const q = this.busqueda.toLowerCase();
     if (!q) return this.pagos;
     return this.pagos.filter(p =>
-      p.cliente.toLowerCase().includes(q) ||
-      p.concepto.toLowerCase().includes(q) ||
-      p.detalle.toLowerCase().includes(q)
+      p.cliente_nombre?.toLowerCase().includes(q) ||
+      p.concepto?.toLowerCase().includes(q) ||
+      p.detalle?.toLowerCase().includes(q)
     );
   }
 
   get totalHoy(): number {
-    const hoy = '19 May 2026';
+    const hoy = new Date().toISOString().split('T')[0];
     return this.pagos
-      .filter(p => p.fecha === hoy)
-      .reduce((sum, p) => sum + p.monto, 0);
+      .filter(p => p.fecha?.startsWith(hoy))
+      .reduce((sum, p) => sum + Number(p.monto), 0);
   }
 
   get pagosHoy(): number {
-    return this.pagos.filter(p => p.fecha === '19 May 2026').length;
+    const hoy = new Date().toISOString().split('T')[0];
+    return this.pagos.filter(p => p.fecha?.startsWith(hoy)).length;
   }
 
   get totalMes(): number {
-    return this.pagos.reduce((sum, p) => sum + p.monto, 0);
+    return this.pagos.reduce((sum, p) => sum + Number(p.monto), 0);
   }
 
   abrirModal() {
@@ -89,7 +109,10 @@ export class HistorialPagos {
     this.modalAbierta = true;
   }
 
-  cerrarModal() { this.modalAbierta = false; }
+  cerrarModal() {
+    this.modalAbierta = false;
+    this.guardando = false;
+  }
 
   onConceptoChanged() {
     this.nuevoPago.detalle = '';
@@ -114,17 +137,29 @@ export class HistorialPagos {
       this.mostrarToast('Por favor llena todos los campos', 'error');
       return;
     }
+    if (this.guardando) return;
+    this.guardando = true;
     const cliente = this.nuevoPago.cliente;
-    this.pagos.unshift({
-      id: this.pagos.length + 1,
-      cliente,
+    this.pagosService.createPago({
       concepto: this.nuevoPago.concepto,
       detalle: this.nuevoPago.detalle,
-      monto: this.nuevoPago.monto!,
-      fecha: '19 May 2026'
+      monto: this.nuevoPago.monto
+    }).subscribe({
+      next: () => {
+        this.zone.run(() => {
+          this.guardando = false;
+          this.modalAbierta = false;
+          this.cargarPagos();
+          this.mostrarToast(`Pago de ${cliente} registrado exitosamente`);
+        });
+      },
+      error: () => {
+        this.zone.run(() => {
+          this.guardando = false;
+          this.mostrarToast('Error al registrar pago', 'error');
+        });
+      }
     });
-    this.cerrarModal();
-    this.mostrarToast(`Pago de ${cliente} registrado exitosamente`);
   }
 
   confirmarEliminar(pago: any) {
@@ -132,12 +167,28 @@ export class HistorialPagos {
     this.modalEliminarAbierta = true;
   }
 
-  cerrarEliminar() { this.modalEliminarAbierta = false; this.pagoAEliminar = null; }
+  cerrarEliminar() {
+    this.modalEliminarAbierta = false;
+    this.pagoAEliminar = null;
+  }
 
   eliminar() {
-    const cliente = this.pagoAEliminar.cliente;
-    this.pagos = this.pagos.filter(p => p.id !== this.pagoAEliminar.id);
-    this.cerrarEliminar();
-    this.mostrarToast(`Pago de ${cliente} eliminado exitosamente`);
+    if (!this.pagoAEliminar) return;
+    const cliente = this.pagoAEliminar.cliente_nombre;
+    const id = this.pagoAEliminar.id_pago;
+    this.pagosService.deletePago(id).subscribe({
+      next: () => {
+        this.zone.run(() => {
+          this.cerrarEliminar();
+          this.cargarPagos();
+          this.mostrarToast(`Pago de ${cliente} eliminado exitosamente`);
+        });
+      },
+      error: () => {
+        this.zone.run(() => {
+          this.mostrarToast('Error al eliminar pago', 'error');
+        });
+      }
+    });
   }
 }
