@@ -652,3 +652,15 @@ input:focus, select:focus {
   from { opacity: 0; transform: translateX(20px); }
   to   { opacity: 1; transform: translateX(0); }
 }
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #aaa;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.loading i { font-size: 20px; }

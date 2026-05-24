@@ -60,7 +60,7 @@
 
 </div>
 
-<div class="modal-overlay" *ngIf="modalAbierta" (click)="cerrarModal()">
+<div class="modal-overlay" [class.show]="modalAbierta" (click)="cerrarModal()">
   <div class="modal" (click)="$event.stopPropagation()">
 
     <div class="modal-header">
@@ -99,15 +99,16 @@
       <button class="btn-cancel" (click)="cerrarModal()">
         <mat-icon>close</mat-icon> Cancelar
       </button>
-      <button class="btn-save" (click)="guardar()">
-        <mat-icon>check</mat-icon> Registrar producto
+      <button class="btn-save" (click)="guardar()" [disabled]="guardando">
+        <mat-icon>{{ guardando ? 'hourglass_empty' : 'check' }}</mat-icon>
+        {{ guardando ? 'Guardando...' : 'Registrar producto' }}
       </button>
     </div>
 
   </div>
 </div>
 
-<div class="modal-overlay" *ngIf="modalEditarAbierta" (click)="cerrarEditar()">
+<div class="modal-overlay" [class.show]="modalEditarAbierta" (click)="cerrarEditar()">
   <div class="modal" (click)="$event.stopPropagation()">
 
     <div class="modal-header">
@@ -153,7 +154,7 @@
   </div>
 </div>
 
-<div class="modal-overlay" *ngIf="modalEliminarAbierta" (click)="cerrarEliminar()">
+<div class="modal-overlay" [class.show]="modalEliminarAbierta" (click)="cerrarEliminar()">
   <div class="modal modal-sm" (click)="$event.stopPropagation()">
 
     <div class="modal-header">

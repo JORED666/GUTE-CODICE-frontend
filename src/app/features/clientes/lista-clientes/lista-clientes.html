@@ -10,7 +10,7 @@
           <span class="stat-label">Total</span>
         </div>
         <div class="stat">
-          <span class="stat-valor">{{ clientes.length - clientes.filter(c => c.status !== 'activo').length }}</span>
+          <span class="stat-valor">{{ clientes.filter(c => c.status === 'activo').length }}</span>
           <span class="stat-label">Activos</span>
         </div>
         <div class="stat">
@@ -34,7 +34,11 @@
       <span class="total">{{ clientesFiltrados.length }} clientes</span>
     </div>
 
-    <table>
+    <div class="loading" *ngIf="cargando">
+      <i class="pi pi-spin pi-spinner"></i> Cargando...
+    </div>
+
+    <table *ngIf="!cargando">
       <thead>
         <tr>
           <th>Nombre</th>
@@ -53,9 +57,9 @@
               <span>{{ c.nombre }} {{ c.apellido }}</span>
             </div>
           </td>
-          <td>{{ c.telefono }}</td>
-          <td>{{ c.membresia }}</td>
-          <td>{{ c.vence }}</td>
+          <td>{{ c.telefono || '—' }}</td>
+          <td>{{ c.membresia_tipo || '—' }}</td>
+          <td>{{ c.fecha_vencimiento ? (c.fecha_vencimiento | date:'dd MMM yyyy') : '—' }}</td>
           <td><span class="badge" [ngClass]="c.status">{{ c.status }}</span></td>
           <td class="acciones">
             <button class="btn-icon edit" title="Editar" (click)="abrirEditar(c)">
@@ -78,10 +82,6 @@
 
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MODAL — NUEVO CLIENTE (2 pasos)
-═══════════════════════════════════════════ -->
 <div class="modal-overlay" *ngIf="modalAbierta" (click)="cerrarModal()">
   <div class="modal" (click)="$event.stopPropagation()">
 
@@ -124,17 +124,17 @@
     <div class="modal-body" *ngIf="paso === 2">
       <div class="membresias-grid">
         <div class="membresia-card" *ngFor="let m of membresias"
-          [class.selected]="nuevoCliente.membresia === m.tipo"
-          (click)="seleccionarMembresia(m.tipo)">
-          <div class="membresia-check" *ngIf="nuevoCliente.membresia === m.tipo">
+          [class.selected]="nuevoCliente.fk_membresia === m.id_membresia"
+          (click)="seleccionarMembresia(m.id_membresia)">
+          <div class="membresia-check" *ngIf="nuevoCliente.fk_membresia === m.id_membresia">
             <i class="pi pi-check-circle"></i>
           </div>
           <div class="membresia-icon">
             <i class="pi pi-calendar"></i>
           </div>
           <div class="membresia-tipo">{{ m.tipo }}</div>
-          <div class="membresia-duracion">{{ m.duracion }}</div>
-          <div class="membresia-precio">{{ m.precio }}</div>
+          <div class="membresia-duracion">{{ m.duracion_dias }} días</div>
+          <div class="membresia-precio">${{ m.precio }}</div>
         </div>
       </div>
     </div>
@@ -153,10 +153,6 @@
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MODAL — EDITAR CLIENTE
-═══════════════════════════════════════════ -->
 <div class="modal-overlay" *ngIf="modalEditarAbierta" (click)="cerrarEditar()">
   <div class="modal" (click)="$event.stopPropagation()">
 
@@ -190,8 +186,8 @@
         </div>
         <div class="form-group">
           <label>Membresía</label>
-          <select [(ngModel)]="clienteEditando.membresia">
-            <option *ngFor="let m of membresias" [value]="m.tipo">{{ m.tipo }}</option>
+          <select [(ngModel)]="clienteEditando.fk_membresia">
+            <option *ngFor="let m of membresias" [value]="m.id_membresia">{{ m.tipo }}</option>
           </select>
         </div>
         <div class="form-group">
@@ -215,10 +211,6 @@
   </div>
 </div>
 
-
-<!-- ═══════════════════════════════════════════
-     MODAL — CONFIRMAR ELIMINACIÓN
-═══════════════════════════════════════════ -->
 <div class="modal-overlay" *ngIf="modalEliminarAbierta" (click)="cerrarEliminar()">
   <div class="modal modal-sm" (click)="$event.stopPropagation()">
 
@@ -253,8 +245,6 @@
   </div>
 </div>
 
-
-<!-- TOAST -->
 <div class="toast" [ngClass]="toastTipo" *ngIf="toastVisible">
   <i class="pi" [ngClass]="toastTipo === 'success' ? 'pi-check-circle' : 'pi-times-circle'"></i>
   <span>{{ toastMensaje }}</span>
