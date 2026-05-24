@@ -7,7 +7,7 @@
     </div>
     <button class="btn-primary" (click)="abrirModal()">
       <mat-icon>add</mat-icon>
-      Registrar pago
+      Registrar venta
     </button>
   </div>
 
@@ -44,7 +44,11 @@
       <span class="total">{{ pagosFiltrados.length }} registros</span>
     </div>
 
-    <table>
+    <div class="loading" *ngIf="cargando">
+      <mat-icon class="spin">refresh</mat-icon> Cargando...
+    </div>
+
+    <table *ngIf="!cargando">
       <thead>
         <tr>
           <th>Cliente</th>
@@ -57,14 +61,14 @@
       </thead>
       <tbody>
         <tr *ngFor="let p of pagosFiltrados">
-          <td class="nombre">{{ p.cliente }}</td>
+          <td class="nombre">{{ p.cliente_nombre || '—' }}</td>
           <td>
             <span class="badge" [ngClass]="p.concepto === 'Membresía' ? 'membresia' : 'producto'">
               {{ p.concepto }}
             </span>
           </td>
           <td>{{ p.detalle }}</td>
-          <td>{{ p.fecha }}</td>
+          <td>{{ p.fecha | date:'dd MMM yyyy' }}</td>
           <td class="monto">${{ p.monto | number }}</td>
           <td class="acciones">
             <button class="btn-icon delete" title="Eliminar" (click)="confirmarEliminar(p)">
@@ -96,40 +100,11 @@
       <div class="form-grid">
 
         <div class="form-group full">
-          <label>Nombre del cliente <span class="req">*</span></label>
-          <input type="text" [(ngModel)]="nuevoPago.cliente" placeholder="Ej. Juan Pérez">
-        </div>
-
-        <div class="form-group">
-          <label>Concepto <span class="req">*</span></label>
-          <select [(ngModel)]="nuevoPago.concepto" (ngModelChange)="onConceptoChanged()">
-            <option value="">Selecciona concepto</option>
-            <option *ngFor="let c of conceptos" [value]="c">{{ c }}</option>
+          <label>Producto <span class="req">*</span></label>
+          <select [(ngModel)]="nuevoPago.detalle" (ngModelChange)="onProductoSeleccionado($event)">
+            <option value="">Selecciona un producto</option>
+            <option *ngFor="let p of productos" [value]="p.nombre">{{ p.nombre }} — ${{ p.precio }}</option>
           </select>
-        </div>
-
-        <div class="form-group">
-          <label>Detalle <span class="req">*</span></label>
-
-          <!-- Membresía -->
-          <select [(ngModel)]="nuevoPago.detalle"
-            *ngIf="nuevoPago.concepto === 'Membresía'"
-            (ngModelChange)="onMembresiaSeleccionada($event)">
-            <option value="">Selecciona membresía</option>
-            <option *ngFor="let m of membresias" [value]="m">{{ m }}</option>
-          </select>
-
-          <!-- Producto -->
-          <select [(ngModel)]="nuevoPago.detalle"
-            *ngIf="nuevoPago.concepto === 'Producto'"
-            (ngModelChange)="onProductoSeleccionado($event)">
-            <option value="">Selecciona producto</option>
-            <option *ngFor="let p of productos" [value]="p.nombre">{{ p.nombre }}</option>
-          </select>
-
-          <!-- Sin concepto -->
-          <input type="text" *ngIf="!nuevoPago.concepto"
-            placeholder="Selecciona primero el concepto" disabled>
         </div>
 
         <div class="form-group full">
@@ -144,8 +119,9 @@
       <button class="btn-cancel" (click)="cerrarModal()">
         <mat-icon>close</mat-icon> Cancelar
       </button>
-      <button class="btn-save" (click)="guardar()">
-        <mat-icon>check</mat-icon> Registrar pago
+      <button class="btn-save" (click)="guardar()" [disabled]="guardando">
+        <mat-icon>{{ guardando ? 'hourglass_empty' : 'check' }}</mat-icon>
+        {{ guardando ? 'Guardando...' : 'Registrar pago' }}
       </button>
     </div>
 
@@ -166,7 +142,7 @@
     <div class="modal-body" *ngIf="pagoAEliminar">
       <div class="delete-msg">
         <p>¿Estás seguro de eliminar el pago de</p>
-        <p class="delete-nombre">{{ pagoAEliminar.cliente }}?</p>
+        <p class="delete-nombre">{{ pagoAEliminar.cliente_nombre }}?</p>
         <p class="delete-aviso">Esta acción no se puede deshacer.</p>
       </div>
     </div>

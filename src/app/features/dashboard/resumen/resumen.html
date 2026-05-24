@@ -27,125 +27,126 @@
     </div>
   </div>
 
-  <!-- Cards -->
-  <div class="cards-grid">
-    <div class="card">
-      <div class="card-top">
-        <span class="card-label">NO. TOTAL DE CLIENTES</span>
-        <div class="card-icon blue"><mat-icon>group</mat-icon></div>
-      </div>
-      <div class="card-value">{{ totalClientes }}</div>
-      <div class="card-sub green">+12% ↑ <span>este mes</span></div>
-    </div>
-    <div class="card">
-      <div class="card-top">
-        <span class="card-label">GANANCIAS DEL MES</span>
-        <div class="card-icon green"><mat-icon>attach_money</mat-icon></div>
-      </div>
-      <div class="card-value">${{ gananciasMes | number }}</div>
-      <div class="card-sub green">+8% ↑ <span>vs mes anterior</span></div>
-    </div>
-    <div class="card">
-      <div class="card-top">
-        <span class="card-label">VENTAS DE PRODUCTOS</span>
-        <div class="card-icon orange"><mat-icon>inventory_2</mat-icon></div>
-      </div>
-      <div class="card-value">${{ ventasProductos | number }}</div>
-      <div class="card-sub red">-3% ↓ <span>vs mes anterior</span></div>
-    </div>
+  <div class="loading" *ngIf="cargando">
+    <mat-icon class="spin">refresh</mat-icon>
+    Cargando datos...
   </div>
 
-  <div class="tables-grid">
-    <div class="table-card">
-      <div class="table-header">
-        <span class="table-title">ÚLTIMOS CLIENTES REGISTRADOS</span>
-        <a routerLink="/clientes" class="ver-todo">Ver todo</a>
+  <ng-container *ngIf="!cargando">
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-top">
+          <span class="card-label">NO. TOTAL DE CLIENTES</span>
+          <div class="card-icon blue"><mat-icon>group</mat-icon></div>
+        </div>
+        <div class="card-value">{{ totalClientes }}</div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Membresía</th>
-            <th>Vence</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let c of ultimosClientes">
-            <td>{{ c.nombre }}</td>
-            <td>{{ c.membresia }}</td>
-            <td>{{ c.vence }}</td>
-            <td><span class="badge" [class.activo]="c.status === 'Activo'" [class.inactivo]="c.status !== 'Activo'">{{ c.status }}</span></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="card">
+        <div class="card-top">
+          <span class="card-label">GANANCIAS DEL MES</span>
+          <div class="card-icon green"><mat-icon>attach_money</mat-icon></div>
+        </div>
+        <div class="card-value">${{ gananciasMes | number }}</div>
+      </div>
+      <div class="card">
+        <div class="card-top">
+          <span class="card-label">VENTAS DE PRODUCTOS</span>
+          <div class="card-icon orange"><mat-icon>inventory_2</mat-icon></div>
+        </div>
+        <div class="card-value">${{ ventasProductos | number }}</div>
+      </div>
     </div>
 
-    <div class="table-card">
-      <div class="table-header">
-        <span class="table-title">ÚLTIMOS PRODUCTOS VENDIDOS</span>
-        <a routerLink="/caja" class="ver-todo">Ver todo</a>
+    <div class="tables-grid">
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">ÚLTIMOS CLIENTES REGISTRADOS</span>
+          <a routerLink="/clientes" class="ver-todo">Ver todo</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Membresía</th>
+              <th>Vence</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of ultimosClientes">
+              <td>{{ c.nombre }} {{ c.apellido }}</td>
+              <td>{{ c.membresia_tipo || '—' }}</td>
+              <td>{{ c.fecha_vencimiento | date:'dd MMM yyyy' }}</td>
+              <td>
+                <span class="badge" [class.activo]="c.status === 'activo'" [class.inactivo]="c.status !== 'activo'">
+                  {{ c.status }}
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="ultimosClientes.length === 0">
+              <td colspan="4" class="empty">Sin clientes registrados</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Categoría</th>
-            <th>Fecha</th>
-            <th>Monto</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let p of ultimosProductos">
-            <td>{{ p.nombre }}</td>
-            <td>{{ p.categoria }}</td>
-            <td>{{ p.fecha }}</td>
-            <td class="monto">${{ p.monto | number }}</td>
-          </tr>
-        </tbody>
-      </table>
+
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">ÚLTIMOS PRODUCTOS VENDIDOS</span>
+          <a routerLink="/caja" class="ver-todo">Ver todo</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Fecha</th>
+              <th>Monto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of ultimosProductos">
+              <td>{{ p.detalle }}</td>
+              <td>{{ p.fecha | date:'dd MMM yyyy' }}</td>
+              <td class="monto">${{ p.monto | number }}</td>
+            </tr>
+            <tr *ngIf="ultimosProductos.length === 0">
+              <td colspan="3" class="empty">Sin ventas registradas</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
 
-  <!-- Gráficas -->
-  <div class="charts-section">
-    <div class="section-title">Movimientos del gimnasio</div>
-    <div class="charts-grid">
+    <div class="charts-section">
+      <div class="section-title">Movimientos del gimnasio</div>
+      <div class="charts-grid">
 
-      <div class="chart-card">
-        <div class="chart-title">Ingresos por mes</div>
-        <div class="chart-container">
-          <canvas baseChart
-            [data]="barChartData"
-            [options]="barChartOptions"
-            type="bar">
-          </canvas>
+        <div class="chart-card">
+          <div class="chart-title">Ingresos por mes</div>
+          <div class="chart-container">
+            <canvas baseChart
+              [data]="barChartData"
+              [options]="barChartOptions"
+              type="bar">
+            </canvas>
+          </div>
         </div>
-      </div>
 
-      <div class="chart-card">
-        <div class="chart-title">Distribución de membresías</div>
-        <div class="chart-container">
-          <canvas baseChart
-            [data]="doughnutData"
-            [options]="doughnutOptions"
-            type="doughnut">
-          </canvas>
+        <div class="chart-card">
+          <div class="chart-title">Distribución de membresías</div>
+          <div class="chart-container">
+            <canvas baseChart
+              [data]="doughnutData"
+              [options]="doughnutOptions"
+              type="doughnut">
+            </canvas>
+          </div>
         </div>
-      </div>
 
-      <div class="chart-card wide">
-        <div class="chart-title">Clientes nuevos por mes</div>
-        <div class="chart-container">
-          <canvas baseChart
-            [data]="lineChartData"
-            [options]="lineChartOptions"
-            type="line">
-          </canvas>
-        </div>
       </div>
-
     </div>
-  </div>
+
+  </ng-container>
 
 </div>

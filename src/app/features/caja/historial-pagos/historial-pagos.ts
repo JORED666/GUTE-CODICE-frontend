@@ -132,35 +132,33 @@ export class HistorialPagos implements OnInit {
   }
 
   guardar() {
-    if (!this.nuevoPago.cliente || !this.nuevoPago.concepto ||
-        !this.nuevoPago.detalle || this.nuevoPago.monto === null) {
-      this.mostrarToast('Por favor llena todos los campos', 'error');
-      return;
-    }
-    if (this.guardando) return;
-    this.guardando = true;
-    const cliente = this.nuevoPago.cliente;
-    this.pagosService.createPago({
-      concepto: this.nuevoPago.concepto,
-      detalle: this.nuevoPago.detalle,
-      monto: this.nuevoPago.monto
-    }).subscribe({
-      next: () => {
-        this.zone.run(() => {
-          this.guardando = false;
-          this.modalAbierta = false;
-          this.cargarPagos();
-          this.mostrarToast(`Pago de ${cliente} registrado exitosamente`);
-        });
-      },
-      error: () => {
-        this.zone.run(() => {
-          this.guardando = false;
-          this.mostrarToast('Error al registrar pago', 'error');
-        });
-      }
-    });
+  if (!this.nuevoPago.detalle || this.nuevoPago.monto === null) {
+    this.mostrarToast('Por favor selecciona un producto', 'error');
+    return;
   }
+  if (this.guardando) return;
+  this.guardando = true;
+  this.pagosService.createPago({
+    concepto: 'Producto',
+    detalle: this.nuevoPago.detalle,
+    monto: this.nuevoPago.monto
+  }).subscribe({
+    next: () => {
+      this.zone.run(() => {
+        this.guardando = false;
+        this.modalAbierta = false;
+        this.cargarPagos();
+        this.mostrarToast(`Venta de ${this.nuevoPago.detalle} registrada exitosamente`);
+      });
+    },
+    error: () => {
+      this.zone.run(() => {
+        this.guardando = false;
+        this.mostrarToast('Error al registrar venta', 'error');
+      });
+    }
+  });
+}
 
   confirmarEliminar(pago: any) {
     this.pagoAEliminar = pago;
