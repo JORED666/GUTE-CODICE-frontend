@@ -1,0 +1,89 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1>Membresías</h1>
+      <p>Gestiona los precios y duración de las membresías</p>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="cargando">
+    <i class="pi pi-spin pi-spinner"></i> Cargando...
+  </div>
+
+  <div class="membresias-grid" *ngIf="!cargando">
+    <div class="membresia-card" *ngFor="let m of membresias">
+
+      <div class="membresia-header" [style.background]="colores[m.tipo]">
+        <i class="pi" [ngClass]="iconos[m.tipo]"></i>
+        <span>{{ m.tipo }}</span>
+      </div>
+
+      <div class="membresia-body">
+        <div class="membresia-info">
+          <div class="info-item">
+            <span class="info-label">Duración</span>
+            <span class="info-valor">{{ m.duracion_dias }} días</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Precio</span>
+            <span class="info-valor precio">${{ m.precio | number }}</span>
+          </div>
+        </div>
+
+        <button class="btn-editar" (click)="abrirEditar(m)">
+          <i class="pi pi-pencil"></i>
+          Editar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-overlay" *ngIf="modalAbierta" (click)="cerrarModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-step-info">
+        <div class="step-badge" [style.background]="membresiaEditando ? colores[membresiaEditando.tipo] : '#4caf50'">
+          <i class="pi pi-pencil"></i>
+        </div>
+        <span>Editar membresía {{ membresiaEditando?.tipo }}</span>
+      </div>
+      <button class="modal-close" (click)="cerrarModal()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body" *ngIf="membresiaEditando">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Precio (MXN) <span class="req">*</span></label>
+          <input type="number" [(ngModel)]="membresiaEditando.precio" min="0" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Duración (días) <span class="req">*</span></label>
+          <input type="number" [(ngModel)]="membresiaEditando.duracion_dias" min="1" placeholder="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarModal()">
+        <i class="pi pi-times"></i> Cancelar
+      </button>
+      <button class="btn-save" (click)="guardar()">
+        <i class="pi pi-save"></i> Guardar cambios
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" [ngClass]="toastTipo" *ngIf="toastVisible">
+  <i class="pi" [ngClass]="toastTipo === 'success' ? 'pi-check-circle' : 'pi-times-circle'"></i>
+  <span>{{ toastMensaje }}</span>
+  <button (click)="toastVisible = false"><i class="pi pi-times"></i></button>
+</div>
