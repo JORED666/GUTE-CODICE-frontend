@@ -5,10 +5,16 @@
       <h1>Caja</h1>
       <p>Historial de pagos y movimientos</p>
     </div>
-    <button class="btn-primary" (click)="abrirModal()">
-      <mat-icon>add</mat-icon>
-      Registrar venta
-    </button>
+    <div class="header-btns">
+      <button class="btn-secondary" (click)="registrarVisita()">
+        <mat-icon>person</mat-icon>
+        Registrar visita  ${{ precioVisita }}
+      </button>
+      <button class="btn-primary" (click)="abrirModal()">
+        <mat-icon>add</mat-icon>
+        Registrar venta
+      </button>
+    </div>
   </div>
 
   <div class="resumen-grid">
@@ -39,7 +45,7 @@
     <div class="table-toolbar">
       <div class="search-box">
         <mat-icon>search</mat-icon>
-        <input type="text" placeholder="Buscar pago..." [(ngModel)]="busqueda">
+        <input type="text" placeholder="Buscar pago..." [(ngModel)]="busqueda" (ngModelChange)="paginaActual = 1">
       </div>
       <span class="total">{{ pagosFiltrados.length }} registros</span>
     </div>
@@ -60,7 +66,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let p of pagosFiltrados">
+        <tr *ngFor="let p of pagosPaginados">
           <td class="nombre">{{ p.cliente_nombre || '—' }}</td>
           <td>
             <span class="badge" [ngClass]="p.concepto === 'Membresía' ? 'membresia' : 'producto'">
@@ -81,24 +87,41 @@
         </tr>
       </tbody>
     </table>
+
+    <div class="paginacion" *ngIf="totalPaginas > 1">
+      <button class="pag-btn" (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button class="pag-num"
+        *ngFor="let p of paginas"
+        [class.activo]="p === paginaActual"
+        (click)="cambiarPagina(p)">
+        {{ p }}
+      </button>
+      <button class="pag-btn" (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+
   </div>
 
 </div>
 
+
+<!-- MODAL — REGISTRAR VENTA -->
 <div class="modal-overlay" *ngIf="modalAbierta" (click)="cerrarModal()">
   <div class="modal" (click)="$event.stopPropagation()">
 
     <div class="modal-header">
       <div class="modal-step-info">
         <div class="step-badge"><mat-icon>payments</mat-icon></div>
-        <span>Registrar pago</span>
+        <span>Registrar venta</span>
       </div>
       <button class="modal-close" (click)="cerrarModal()"><mat-icon>close</mat-icon></button>
     </div>
 
     <div class="modal-body">
       <div class="form-grid">
-
         <div class="form-group full">
           <label>Producto <span class="req">*</span></label>
           <select [(ngModel)]="nuevoPago.detalle" (ngModelChange)="onProductoSeleccionado($event)">
@@ -106,12 +129,10 @@
             <option *ngFor="let p of productos" [value]="p.nombre">{{ p.nombre }} — ${{ p.precio }}</option>
           </select>
         </div>
-
         <div class="form-group full">
           <label>Monto (MXN) <span class="req">*</span></label>
           <input type="number" [(ngModel)]="nuevoPago.monto" placeholder="0.00" min="0">
         </div>
-
       </div>
     </div>
 
@@ -121,13 +142,15 @@
       </button>
       <button class="btn-save" (click)="guardar()" [disabled]="guardando">
         <mat-icon>{{ guardando ? 'hourglass_empty' : 'check' }}</mat-icon>
-        {{ guardando ? 'Guardando...' : 'Registrar pago' }}
+        {{ guardando ? 'Guardando...' : 'Registrar venta' }}
       </button>
     </div>
 
   </div>
 </div>
 
+
+<!-- MODAL — CONFIRMAR ELIMINACIÓN -->
 <div class="modal-overlay" *ngIf="modalEliminarAbierta" (click)="cerrarEliminar()">
   <div class="modal modal-sm" (click)="$event.stopPropagation()">
 
@@ -141,8 +164,9 @@
 
     <div class="modal-body" *ngIf="pagoAEliminar">
       <div class="delete-msg">
-        <p>¿Estás seguro de eliminar el pago de</p>
-        <p class="delete-nombre">{{ pagoAEliminar.cliente_nombre }}?</p>
+        <i class="pi pi-exclamation-circle delete-icon"></i>
+        <p>¿Estás seguro de eliminar este pago?</p>
+        <p class="delete-nombre">{{ pagoAEliminar.detalle }}</p>
         <p class="delete-aviso">Esta acción no se puede deshacer.</p>
       </div>
     </div>
@@ -159,6 +183,8 @@
   </div>
 </div>
 
+
+<!-- TOAST -->
 <div class="toast" [ngClass]="toastTipo" *ngIf="toastVisible">
   <mat-icon>{{ toastTipo === 'success' ? 'check_circle' : 'cancel' }}</mat-icon>
   <span>{{ toastMensaje }}</span>

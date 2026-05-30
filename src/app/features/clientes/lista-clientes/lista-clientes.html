@@ -19,17 +19,23 @@
         </div>
       </div>
     </div>
-    <button class="btn-primary" (click)="abrirModal()">
-      <i class="pi pi-user-plus"></i>
-      Nuevo cliente
-    </button>
+    <div class="header-btns">
+      <button class="btn-secondary" (click)="abrirModalVencer()">
+        <i class="pi pi-bell"></i>
+        Membresías por vencer
+      </button>
+      <button class="btn-primary" (click)="abrirModal()">
+        <i class="pi pi-user-plus"></i>
+        Nuevo cliente
+      </button>
+    </div>
   </div>
 
   <div class="table-card">
     <div class="table-toolbar">
       <div class="search-box">
         <i class="pi pi-search"></i>
-        <input type="text" placeholder="Buscar cliente..." [(ngModel)]="busqueda">
+        <input type="text" placeholder="Buscar cliente..." [(ngModel)]="busqueda" (ngModelChange)="paginaActual = 1">
       </div>
       <span class="total">{{ clientesFiltrados.length }} clientes</span>
     </div>
@@ -50,7 +56,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let c of clientesFiltrados">
+        <tr *ngFor="let c of clientesPaginados">
           <td>
             <div class="nombre">
               <div class="avatar">{{ c.nombre[0] }}{{ c.apellido[0] }}</div>
@@ -62,12 +68,26 @@
           <td>{{ c.fecha_vencimiento ? (c.fecha_vencimiento | date:'dd MMM yyyy') : '—' }}</td>
           <td><span class="badge" [ngClass]="c.status">{{ c.status }}</span></td>
           <td class="acciones">
-            <button class="btn-icon edit" title="Editar" (click)="abrirEditar(c)">
-              <i class="pi pi-pencil"></i>
-            </button>
-            <button class="btn-icon delete" title="Eliminar" (click)="confirmarEliminar(c)">
-              <i class="pi pi-trash"></i>
-            </button>
+            <div class="menu-tres-puntos">
+              <button class="btn-menu" (click)="toggleMenu(c.id_cliente, $event)">
+                <i class="pi pi-ellipsis-v"></i>
+              </button>
+              <div class="dropdown-acciones" [class.open]="menuAbierto === c.id_cliente">
+                <button class="accion-item whatsapp" (click)="notificarWhatsapp(c)">
+                  <i class="pi pi-whatsapp"></i>
+                  <span>Notificar</span>
+                </button>
+                <button class="accion-item edit" (click)="abrirEditar(c)">
+                  <i class="pi pi-pencil"></i>
+                  <span>Editar</span>
+                </button>
+                <div class="accion-divider"></div>
+                <button class="accion-item delete" (click)="confirmarEliminar(c)">
+                  <i class="pi pi-trash"></i>
+                  <span>Eliminar</span>
+                </button>
+              </div>
+            </div>
           </td>
         </tr>
         <tr *ngIf="clientesFiltrados.length === 0">
@@ -78,10 +98,79 @@
         </tr>
       </tbody>
     </table>
+    <div class="paginacion" *ngIf="totalPaginas > 1">
+      <button class="pag-btn" (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1">
+        <i class="pi pi-chevron-left"></i>
+      </button>
+      <button class="pag-num"
+        *ngFor="let p of paginas"
+        [class.activo]="p === paginaActual"
+        (click)="cambiarPagina(p)">
+        {{ p }}
+      </button>
+      <button class="pag-btn" (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas">
+        <i class="pi pi-chevron-right"></i>
+      </button>
+    </div>
   </div>
 
 </div>
 
+
+<!-- ═══════════════════════════════════════════
+     MODAL — MEMBRESÍAS POR VENCER
+═══════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="modalVencerAbierta" (click)="cerrarModalVencer()">
+  <div class="modal modal-vencer" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-step-info">
+        <div class="step-badge warning-badge"><i class="pi pi-bell"></i></div>
+        <span>Membresías por vencer</span>
+      </div>
+      <button class="modal-close" (click)="cerrarModalVencer()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="loading" *ngIf="cargandoVencer">
+        <i class="pi pi-spin pi-spinner"></i> Cargando...
+      </div>
+
+      <div class="vencer-empty" *ngIf="!cargandoVencer && clientesPorVencer.length === 0">
+        <i class="pi pi-check-circle"></i>
+        <p>No hay membresías por vencer esta semana</p>
+      </div>
+
+      <div class="vencer-lista" *ngIf="!cargandoVencer && clientesPorVencer.length > 0">
+        <div class="vencer-item" *ngFor="let c of clientesPorVencer">
+          <div class="vencer-avatar">{{ c.nombre[0] }}{{ c.apellido[0] }}</div>
+          <div class="vencer-info">
+            <span class="vencer-nombre">{{ c.nombre }} {{ c.apellido }}</span>
+            <span class="vencer-membresia">{{ c.membresia_tipo }}</span>
+            <span class="vencer-fecha">Vence: {{ c.fecha_vencimiento | date:'dd MMM yyyy' }}</span>
+          </div>
+          <button class="btn-whatsapp" (click)="notificarWhatsapp(c)" title="Notificar por WhatsApp">
+            <i class="pi pi-whatsapp"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarModalVencer()">
+        <i class="pi pi-times"></i> Cerrar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     MODAL — NUEVO CLIENTE (2 pasos)
+═══════════════════════════════════════════ -->
 <div class="modal-overlay" *ngIf="modalAbierta" (click)="cerrarModal()">
   <div class="modal" (click)="$event.stopPropagation()">
 
@@ -153,6 +242,10 @@
   </div>
 </div>
 
+
+<!-- ═══════════════════════════════════════════
+     MODAL — EDITAR CLIENTE
+═══════════════════════════════════════════ -->
 <div class="modal-overlay" *ngIf="modalEditarAbierta" (click)="cerrarEditar()">
   <div class="modal" (click)="$event.stopPropagation()">
 
@@ -211,6 +304,10 @@
   </div>
 </div>
 
+
+<!-- ═══════════════════════════════════════════
+     MODAL — CONFIRMAR ELIMINACIÓN
+═══════════════════════════════════════════ -->
 <div class="modal-overlay" *ngIf="modalEliminarAbierta" (click)="cerrarEliminar()">
   <div class="modal modal-sm" (click)="$event.stopPropagation()">
 
@@ -245,6 +342,8 @@
   </div>
 </div>
 
+
+<!-- TOAST -->
 <div class="toast" [ngClass]="toastTipo" *ngIf="toastVisible">
   <i class="pi" [ngClass]="toastTipo === 'success' ? 'pi-check-circle' : 'pi-times-circle'"></i>
   <span>{{ toastMensaje }}</span>

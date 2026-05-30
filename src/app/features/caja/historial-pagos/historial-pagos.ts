@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { PagosService } from '../../../core/services/pagos';
 import { ProductosService } from '../../../core/services/productos';
+import { MembresiasService } from '../../../core/services/membresias';
 
 @Component({
   selector: 'app-historial-pagos',
@@ -19,6 +20,9 @@ export class HistorialPagos implements OnInit {
   modalAbierta = false;
   modalEliminarAbierta = false;
   pagoAEliminar: any = null;
+  precioVisita = 50;
+  paginaActual = 1;
+  porPagina = 10;
 
   toastVisible = false;
   toastMensaje = '';
@@ -33,28 +37,25 @@ export class HistorialPagos implements OnInit {
     this.toastTimer = setTimeout(() => this.toastVisible = false, 4000);
   }
 
-  conceptos = ['Membresía', 'Producto'];
-  membresias = ['Semanal', 'Quincenal', 'Mensual', 'Anual'];
   productos: any[] = [];
+  pagos: any[] = [];
 
   nuevoPago = {
-    cliente: '',
-    concepto: '',
     detalle: '',
     monto: null as number | null
   };
 
-  pagos: any[] = [];
-
   constructor(
     private pagosService: PagosService,
     private productosService: ProductosService,
+    private membresiasService: MembresiasService,
     private zone: NgZone
   ) {}
 
   ngOnInit() {
     this.cargarPagos();
     this.cargarProductos();
+    this.cargarPrecioVisita();
   }
 
   cargarPagos() {
@@ -78,14 +79,42 @@ export class HistorialPagos implements OnInit {
     });
   }
 
+  cargarPrecioVisita() {
+    this.membresiasService.getMembresias().subscribe({
+      next: (data) => {
+        const visita = data.find((m: any) => m.tipo === 'Visita');
+        if (visita) this.precioVisita = parseFloat(visita.precio);
+      },
+      error: () => {}
+    });
+  }
+
   get pagosFiltrados() {
-    const q = this.busqueda.toLowerCase();
-    if (!q) return this.pagos;
-    return this.pagos.filter(p =>
-      p.cliente_nombre?.toLowerCase().includes(q) ||
-      p.concepto?.toLowerCase().includes(q) ||
-      p.detalle?.toLowerCase().includes(q)
-    );
+  const q = this.busqueda.toLowerCase();
+  if (!q) return this.pagos;
+  return this.pagos.filter(p =>
+    p.cliente_nombre?.toLowerCase().includes(q) ||
+    p.concepto?.toLowerCase().includes(q) ||
+    p.detalle?.toLowerCase().includes(q)
+  );
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.pagosFiltrados.length / this.porPagina);
+  }
+
+  get pagosPaginados(): any[] {
+    const inicio = (this.paginaActual - 1) * this.porPagina;
+    return this.pagosFiltrados.slice(inicio, inicio + this.porPagina);
+  }
+
+  get paginas(): number[] {
+    return Array.from({ length: this.totalPaginas }, (_, i) => i + 1);
+  }
+
+  cambiarPagina(pagina: number) {
+    if (pagina < 1 || pagina > this.totalPaginas) return;
+    this.paginaActual = pagina;
   }
 
   get totalHoy(): number {
@@ -104,8 +133,28 @@ export class HistorialPagos implements OnInit {
     return this.pagos.reduce((sum, p) => sum + Number(p.monto), 0);
   }
 
+  registrarVisita() {
+    this.pagosService.createPago({
+      concepto: 'Membresía',
+      detalle: 'Visita',
+      monto: this.precioVisita
+    }).subscribe({
+      next: () => {
+        this.zone.run(() => {
+          this.cargarPagos();
+          this.mostrarToast(`Visita registrada — $${this.precioVisita}`);
+        });
+      },
+      error: () => {
+        this.zone.run(() => {
+          this.mostrarToast('Error al registrar visita', 'error');
+        });
+      }
+    });
+  }
+
   abrirModal() {
-    this.nuevoPago = { cliente: '', concepto: '', detalle: '', monto: null };
+    this.nuevoPago = { detalle: '', monto: null };
     this.modalAbierta = true;
   }
 
@@ -114,51 +163,40 @@ export class HistorialPagos implements OnInit {
     this.guardando = false;
   }
 
-  onConceptoChanged() {
-    this.nuevoPago.detalle = '';
-    this.nuevoPago.monto = null;
-  }
-
   onProductoSeleccionado(nombre: string) {
     const prod = this.productos.find(p => p.nombre === nombre);
     if (prod) this.nuevoPago.monto = prod.precio;
   }
 
-  onMembresiaSeleccionada(tipo: string) {
-    const precios: Record<string, number> = {
-      'Semanal': 150, 'Quincenal': 250, 'Mensual': 400, 'Anual': 3500
-    };
-    this.nuevoPago.monto = precios[tipo] ?? null;
-  }
-
   guardar() {
-  if (!this.nuevoPago.detalle || this.nuevoPago.monto === null) {
-    this.mostrarToast('Por favor selecciona un producto', 'error');
-    return;
-  }
-  if (this.guardando) return;
-  this.guardando = true;
-  this.pagosService.createPago({
-    concepto: 'Producto',
-    detalle: this.nuevoPago.detalle,
-    monto: this.nuevoPago.monto
-  }).subscribe({
-    next: () => {
-      this.zone.run(() => {
-        this.guardando = false;
-        this.modalAbierta = false;
-        this.cargarPagos();
-        this.mostrarToast(`Venta de ${this.nuevoPago.detalle} registrada exitosamente`);
-      });
-    },
-    error: () => {
-      this.zone.run(() => {
-        this.guardando = false;
-        this.mostrarToast('Error al registrar venta', 'error');
-      });
+    if (!this.nuevoPago.detalle || this.nuevoPago.monto === null) {
+      this.mostrarToast('Por favor selecciona un producto', 'error');
+      return;
     }
-  });
-}
+    if (this.guardando) return;
+    this.guardando = true;
+    const detalle = this.nuevoPago.detalle;
+    this.pagosService.createPago({
+      concepto: 'Producto',
+      detalle: this.nuevoPago.detalle,
+      monto: this.nuevoPago.monto
+    }).subscribe({
+      next: () => {
+        this.zone.run(() => {
+          this.guardando = false;
+          this.modalAbierta = false;
+          this.cargarPagos();
+          this.mostrarToast(`Venta de ${detalle} registrada exitosamente`);
+        });
+      },
+      error: () => {
+        this.zone.run(() => {
+          this.guardando = false;
+          this.mostrarToast('Error al registrar venta', 'error');
+        });
+      }
+    });
+  }
 
   confirmarEliminar(pago: any) {
     this.pagoAEliminar = pago;
@@ -172,14 +210,13 @@ export class HistorialPagos implements OnInit {
 
   eliminar() {
     if (!this.pagoAEliminar) return;
-    const cliente = this.pagoAEliminar.cliente_nombre;
     const id = this.pagoAEliminar.id_pago;
     this.pagosService.deletePago(id).subscribe({
       next: () => {
         this.zone.run(() => {
           this.cerrarEliminar();
           this.cargarPagos();
-          this.mostrarToast(`Pago de ${cliente} eliminado exitosamente`);
+          this.mostrarToast(`Pago eliminado exitosamente`);
         });
       },
       error: () => {
