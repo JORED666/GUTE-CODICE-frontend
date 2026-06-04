@@ -38,4 +38,8 @@ export class ClientesService {
   getMembresias(): Observable<any[]> {
     return this.http.get<any[]>(`${environment.apiUrl}/membresias`, { headers: this.getHeaders() });
   }
+
+  getClientesPorVencer(): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/por-vencer`, { headers: this.getHeaders() });
+}
 }

@@ -1,1 +1,333 @@
-/* You can add global styles to this file, and also import other style files */
+/* ═══════════════════════════════════════════
+   MODO OSCURO — ESTILOS GLOBALES
+═══════════════════════════════════════════ */
+
+body.dark .table-card,
+body.dark .card,
+body.dark .resumen-card,
+body.dark .chart-card,
+body.dark .config-card,
+body.dark .profile-card,
+body.dark .info-card,
+body.dark .membresia-card,
+body.dark .vencer-item {
+  background: #1a1a2e !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .page-header h1,
+body.dark .page-header p,
+body.dark .card-value,
+body.dark .resumen-valor,
+body.dark .nombre,
+body.dark td,
+body.dark .info-valor,
+body.dark .vencer-nombre {
+  color: #f0f0ff !important;
+}
+
+body.dark th {
+  color: #7070a0 !important;
+  background: #1a1a2e !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark td {
+  border-color: #2a2a3e !important;
+}
+
+body.dark tbody tr:hover td {
+  background: #22223a !important;
+}
+
+body.dark .table-toolbar {
+  background: #22223a !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .search-box {
+  background: #0f0f1a !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .search-box input,
+body.dark input,
+body.dark select {
+  background: #22223a !important;
+  border-color: #2a2a3e !important;
+  color: #f0f0ff !important;
+}
+
+body.dark input::placeholder {
+  color: #5050a0 !important;
+}
+
+body.dark label {
+  color: #7070a0 !important;
+}
+
+body.dark .total {
+  background: #22223a !important;
+  color: #7070a0 !important;
+}
+
+body.dark .card-label,
+body.dark .resumen-label,
+body.dark .table-title,
+body.dark .text-muted,
+body.dark .page-header p,
+body.dark .vencer-membresia,
+body.dark .info-label {
+  color: #7070a0 !important;
+}
+
+body.dark .modal {
+  background: #1a1a2e !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .modal-header {
+  border-color: #2a2a3e !important;
+}
+
+body.dark .modal-footer {
+  background: #22223a !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .modal-body {
+  background: #1a1a2e !important;
+}
+
+body.dark .modal-step-info {
+  color: #f0f0ff !important;
+}
+
+body.dark .modal-close {
+  background: #22223a !important;
+  color: #7070a0 !important;
+}
+
+body.dark .modal-close:hover {
+  background: #3a1a1a !important;
+  color: #f44336 !important;
+}
+
+body.dark .btn-cancel {
+  background: #22223a !important;
+  border-color: #2a2a3e !important;
+  color: #c0c0d0 !important;
+}
+
+body.dark .dropdown-acciones {
+  background: #1a1a2e !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .accion-item {
+  color: #c0c0d0 !important;
+}
+
+body.dark .accion-item:hover {
+  background: #22223a !important;
+}
+
+body.dark .btn-menu {
+  background: #22223a !important;
+  color: #c0c0d0 !important;
+}
+
+body.dark .progress-bar {
+  background: #22223a !important;
+}
+
+body.dark .progress-label {
+  color: #7070a0 !important;
+}
+
+body.dark .membresia-card {
+  background: #22223a !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .membresia-card.selected {
+  background: #1a2a1a !important;
+  border-color: #4caf50 !important;
+}
+
+body.dark .membresia-tipo {
+  color: #f0f0ff !important;
+}
+
+body.dark .membresia-duracion,
+body.dark .vencer-fecha {
+  color: #7070a0 !important;
+}
+
+body.dark .badge.activo { background: #1a2a1a !important; }
+body.dark .badge.inactivo { background: #2a1a1a !important; }
+body.dark .badge.suspendido { background: #2a2a1a !important; }
+
+body.dark .cat-badge {
+  background: #1a1a3a !important;
+}
+
+body.dark .input-wrap {
+  background: #22223a !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .input-wrap input {
+  color: #f0f0ff !important;
+}
+
+body.dark .input-wrap i {
+  color: #5050a0 !important;
+}
+
+body.dark .profile-card,
+body.dark .info-card {
+  background: #1a1a2e !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .info-card-header,
+body.dark .card-header {
+  background: #22223a !important;
+  border-color: #2a2a3e !important;
+  color: #f0f0ff !important;
+}
+
+body.dark .info-divider,
+body.dark .divider {
+  background: #2a2a3e !important;
+}
+
+body.dark .avatar {
+  background: linear-gradient(135deg, #2e4a2e, #1a2e1a) !important;
+}
+
+body.dark .section-title {
+  color: #f0f0ff !important;
+}
+
+body.dark .ver-todo { color: #4caf50 !important; }
+
+body.dark .pag-btn,
+body.dark .pag-num {
+  background: #22223a !important;
+  border-color: #2a2a3e !important;
+  color: #c0c0d0 !important;
+}
+
+body.dark .pag-num.activo {
+  background: #4caf50 !important;
+  border-color: #4caf50 !important;
+  color: white !important;
+}
+
+body.dark .delete-msg p,
+body.dark .danger-text {
+  color: #c0c0d0 !important;
+}
+
+body.dark .chart-title {
+  color: #c0c0d0 !important;
+}
+
+body.dark .logo-text {
+  color: #f0f0ff !important;
+}
+
+body.dark .dashboard h1,
+body.dark .dashboard p,
+body.dark .section-title {
+  color: #f0f0ff !important;
+}
+
+body.dark .page-header h1 {
+  color: #f0f0ff !important;
+}
+
+body.dark .content {
+  background: #0f0f1a !important;
+}
+
+body.dark .monto {
+  color: #4caf50 !important;
+}
+
+body.dark .fecha,
+body.dark .card-sub span {
+  color: #7070a0 !important;
+}
+
+body.dark .reporte-btn {
+  background: #4caf50 !important;
+}
+
+body.dark .table-card table th {
+  background: #22223a !important;
+}
+
+body.dark .sidebar {
+  background: #1a1a2e !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .nav-item {
+  color: #c0c0d0 !important;
+}
+
+body.dark .nav-item i {
+  color: #7070a0 !important;
+}
+
+body.dark .nav-item:hover {
+  background: #22223a !important;
+  color: #f0f0ff !important;
+}
+
+body.dark .nav-item.active {
+  background: #1a2a1a !important;
+  color: #4caf50 !important;
+}
+
+body.dark .nav-item.active i {
+  color: #4caf50 !important;
+}
+
+body.dark .nav-label {
+  color: #5050a0 !important;
+}
+
+body.dark .logo-text {
+  color: #f0f0ff !important;
+}
+
+body.dark .topbar {
+  background: #1a1a2e !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .admin-info {
+  color: #f0f0ff !important;
+}
+
+body.dark .admin-info:hover {
+  background: #22223a !important;
+}
+
+body.dark .admin-avatar {
+  background: #22223a !important;
+  border-color: #2a2a3e !important;
+}
+
+body.dark .btn-theme {
+  border-color: #2a2a3e !important;
+  color: #c0c0d0 !important;
+}
+
+body.dark .content {
+  background: #0f0f1a !important;
+}

@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { ClientesService } from '../../../core/services/clientes';
+import { MembresiasService } from '../../../core/services/membresias';
 
 @Component({
   selector: 'app-lista-clientes',
@@ -20,6 +21,12 @@ export class ListaClientes implements OnInit {
   clienteEditando: any = null;
   modalEliminarAbierta = false;
   clienteAEliminar: any = null;
+  menuAbierto: number | null = null;
+
+  // Modal por vencer
+  modalVencerAbierta = false;
+  clientesPorVencer: any[] = [];
+  cargandoVencer = false;
 
   toastVisible = false;
   toastMensaje = '';
@@ -38,20 +45,38 @@ export class ListaClientes implements OnInit {
     nombre: '', apellido: '', telefono: '', correo: '', fk_membresia: null as number | null
   };
 
-  membresias = [
-    { id_membresia: 1, tipo: 'Semanal',   duracion_dias: 7,   precio: 150 },
-    { id_membresia: 2, tipo: 'Quincenal', duracion_dias: 15,  precio: 250 },
-    { id_membresia: 3, tipo: 'Mensual',   duracion_dias: 30,  precio: 400 },
-    { id_membresia: 4, tipo: 'Anual',     duracion_dias: 365, precio: 3500 },
-  ];
-
+  membresias: any[] = [];
   statuses = ['activo', 'inactivo', 'suspendido'];
   clientes: any[] = [];
 
-  constructor(private clientesService: ClientesService) {}
+  constructor(
+    private clientesService: ClientesService,
+    private membresiasService: MembresiasService
+  ) {}
 
   ngOnInit() {
     this.cargarClientes();
+    this.cargarMembresias();
+  }
+
+  @HostListener('document:click', ['$event'])
+  cerrarMenu(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.menu-tres-puntos')) {
+      this.menuAbierto = null;
+    }
+  }
+
+  toggleMenu(id: number, event: MouseEvent) {
+    event.stopPropagation();
+    this.menuAbierto = this.menuAbierto === id ? null : id;
+  }
+
+  cargarMembresias() {
+    this.membresiasService.getMembresias().subscribe({
+      next: (data) => this.membresias = data,
+      error: () => {}
+    });
   }
 
   cargarClientes() {
@@ -77,6 +102,36 @@ export class ListaClientes implements OnInit {
       c.telefono?.includes(q) ||
       c.membresia_tipo?.toLowerCase().includes(q)
     );
+  }
+
+  abrirModalVencer() {
+    this.modalVencerAbierta = true;
+    this.cargandoVencer = true;
+    this.clientesService.getClientesPorVencer().subscribe({
+      next: (data) => {
+        this.clientesPorVencer = data;
+        this.cargandoVencer = false;
+      },
+      error: () => {
+        this.mostrarToast('Error al cargar clientes por vencer', 'error');
+        this.cargandoVencer = false;
+      }
+    });
+  }
+
+  cerrarModalVencer() { this.modalVencerAbierta = false; }
+
+  notificarWhatsapp(cliente: any) {
+    const mensaje = encodeURIComponent(
+      `Hola ${cliente.nombre}, te recordamos que tu membresía *${cliente.membresia_tipo}* vence el *${new Date(cliente.fecha_vencimiento).toLocaleDateString('es-MX')}*. ¡Renuévala para seguir disfrutando del gimnasio! 💪`
+    );
+    const telefono = cliente.telefono?.replace(/\D/g, '');
+    if (!telefono) {
+      this.mostrarToast('Este cliente no tiene teléfono registrado', 'error');
+      return;
+    }
+    window.open(`https://wa.me/52${telefono}?text=${mensaje}`, '_blank');
+    this.menuAbierto = null;
   }
 
   abrirModal() {
@@ -120,48 +175,71 @@ export class ListaClientes implements OnInit {
   abrirEditar(cliente: any) {
     this.clienteEditando = { ...cliente };
     this.modalEditarAbierta = true;
+    this.menuAbierto = null;
   }
 
   cerrarEditar() { this.modalEditarAbierta = false; this.clienteEditando = null; }
 
   guardarEdicion() {
-  if (!this.clienteEditando) return;
-  if (!this.clienteEditando.nombre || !this.clienteEditando.apellido) {
-    this.mostrarToast('Nombre y apellido son obligatorios', 'error');
-    return;
-  }
-  const nombre = `${this.clienteEditando.nombre} ${this.clienteEditando.apellido}`;
-  this.clientesService.updateCliente(this.clienteEditando.id_cliente, this.clienteEditando).subscribe({
-    next: () => {
-      this.cerrarEditar();
-      this.cargarClientes();
-      this.mostrarToast(`${nombre} se ha actualizado exitosamente`);
-    },
-    error: () => {
-      this.mostrarToast('Error al actualizar cliente', 'error');
+    if (!this.clienteEditando) return;
+    if (!this.clienteEditando.nombre || !this.clienteEditando.apellido) {
+      this.mostrarToast('Nombre y apellido son obligatorios', 'error');
+      return;
     }
-  });
-}
+    const nombre = `${this.clienteEditando.nombre} ${this.clienteEditando.apellido}`;
+    this.clientesService.updateCliente(this.clienteEditando.id_cliente, this.clienteEditando).subscribe({
+      next: () => {
+        this.cerrarEditar();
+        this.cargarClientes();
+        this.mostrarToast(`${nombre} se ha actualizado exitosamente`);
+      },
+      error: () => {
+        this.mostrarToast('Error al actualizar cliente', 'error');
+      }
+    });
+  }
 
   confirmarEliminar(cliente: any) {
     this.clienteAEliminar = cliente;
     this.modalEliminarAbierta = true;
+    this.menuAbierto = null;
   }
 
   cerrarEliminar() { this.modalEliminarAbierta = false; this.clienteAEliminar = null; }
 
   eliminar() {
-  if (!this.clienteAEliminar) return;
-  const nombre = `${this.clienteAEliminar.nombre} ${this.clienteAEliminar.apellido}`;
-  this.clientesService.deleteCliente(this.clienteAEliminar.id_cliente).subscribe({
-    next: () => {
-      this.cerrarEliminar();
-      this.cargarClientes();
-      this.mostrarToast(`${nombre} se ha eliminado exitosamente`);
-    },
-    error: () => {
-      this.mostrarToast('Error al eliminar cliente', 'error');
-    }
-  });
+    if (!this.clienteAEliminar) return;
+    const nombre = `${this.clienteAEliminar.nombre} ${this.clienteAEliminar.apellido}`;
+    this.clientesService.deleteCliente(this.clienteAEliminar.id_cliente).subscribe({
+      next: () => {
+        this.cerrarEliminar();
+        this.cargarClientes();
+        this.mostrarToast(`${nombre} se ha eliminado exitosamente`);
+      },
+      error: () => {
+        this.mostrarToast('Error al eliminar cliente', 'error');
+      }
+    });
   }
+
+  paginaActual = 1;
+porPagina = 10;
+
+get totalPaginas(): number {
+  return Math.ceil(this.clientesFiltrados.length / this.porPagina);
+}
+
+get clientesPaginados(): any[] {
+  const inicio = (this.paginaActual - 1) * this.porPagina;
+  return this.clientesFiltrados.slice(inicio, inicio + this.porPagina);
+}
+
+get paginas(): number[] {
+  return Array.from({ length: this.totalPaginas }, (_, i) => i + 1);
+}
+
+cambiarPagina(pagina: number) {
+  if (pagina < 1 || pagina > this.totalPaginas) return;
+  this.paginaActual = pagina;
+}
 }

@@ -5,7 +5,7 @@
       (mouseleave)="sidebarExpanded = false">
 
       <div class="logo">
-        <span class="logo-text">CODICE<span class="logo-accent">GYM</span></span>
+        <span class="logo-text">Pendiente<span class="logo-accent"> Gimnasio</span></span>
       </div>
 
       <div class="nav-section">
@@ -27,6 +27,10 @@
         <a routerLink="/caja" routerLinkActive="active" class="nav-item">
           <i class="pi pi-wallet"></i>
           <span class="nav-text">Caja</span>
+        </a>
+        <a routerLink="/membresias" routerLinkActive="active" class="nav-item">
+          <i class="pi pi-credit-card"></i>
+          <span class="nav-text">Membresías</span>
         </a>
       </div>
 
@@ -60,6 +64,14 @@
               <i class="pi pi-sign-out"></i>
               <span>Cerrar sesión</span>
             </button>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <button class="btn-theme" (click)="toggleTheme()" [title]="isDark ? 'Modo claro' : 'Modo oscuro'">
+            <i class="pi" [ngClass]="isDark ? 'pi-sun' : 'pi-moon'"></i>
+          </button>
+          <div class="admin-info" (click)="toggleMenu()">
+            ...
           </div>
         </div>
       </header>

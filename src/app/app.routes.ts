@@ -38,5 +38,12 @@ export const routes: Routes = [
     loadChildren: () => import('./features/configuracion/configuracion-module')
       .then(m => m.ConfiguracionModule)
   },
+  
+  {
+  path: 'membresias',
+  canActivate: [authGuard],
+  loadChildren: () => import('./features/membresias/membresias-module')
+    .then(m => m.MembresiasModule)
+  },
   { path: '**', redirectTo: 'login' }
 ];

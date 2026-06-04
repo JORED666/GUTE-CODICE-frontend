@@ -3,6 +3,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } fro
 import { CommonModule } from '@angular/common';
 import { AdminService } from './core/services/admin';
 import { AuthService } from './core/services/auth';
+import { ThemeService } from './core/services/theme';
 
 @Component({
   selector: 'app-root',
@@ -15,16 +16,17 @@ export class App implements OnInit {
   menuOpen = false;
   sidebarExpanded = false;
   mostrarLayout = false;
-
   adminFoto: string | null = null;
   adminNombre = 'Admin';
+  isDark = false;
 
   private rutasSinLayout = ['/login'];
 
   constructor(
     private router: Router,
     private adminService: AdminService,
-    private authService: AuthService
+    private authService: AuthService,
+    private themeService: ThemeService
   ) {}
 
   ngOnInit() {
@@ -33,12 +35,17 @@ export class App implements OnInit {
         this.mostrarLayout = !this.rutasSinLayout.includes(event.urlAfterRedirects);
       }
     });
-
     this.adminService.foto$.subscribe(foto => this.adminFoto = foto);
     this.adminService.nombre$.subscribe(nombre => this.adminNombre = nombre);
+    this.isDark = this.themeService.isDark();
   }
 
   toggleMenu() { this.menuOpen = !this.menuOpen; }
+
+  toggleTheme() {
+    this.themeService.toggle();
+    this.isDark = this.themeService.isDark();
+  }
 
   cerrarSesion() {
     this.menuOpen = false;
