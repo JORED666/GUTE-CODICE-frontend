@@ -240,3 +240,26 @@ label {
 }
 
 .login-hint i { font-size: 13px; }
+
+/* Flip text animation */
+.flip-text {
+  display: inline-flex;
+  gap: 0.05em;
+}
+
+.flip-char {
+  display: inline-block;
+  position: relative;
+  height: 1.2em;
+  line-height: 1.2em;
+  vertical-align: middle;
+  perspective: 1000px;
+  animation: flipChar 2.2s infinite ease;
+}
+
+@keyframes flipChar {
+  0%, 100% { transform: rotateX(0deg); opacity: 1; }
+  45% { transform: rotateX(-90deg); opacity: 0; }
+  55% { transform: rotateX(-90deg); opacity: 0; }
+  90% { transform: rotateX(0deg); opacity: 1; }
+}
